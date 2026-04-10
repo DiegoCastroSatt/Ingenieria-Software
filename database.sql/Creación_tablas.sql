@@ -1,3 +1,96 @@
+--- 🔥 Crear base de datos
+CREATE DATABASE gym_db;
+USE gym_db;
+
+-- 🔹 Tipos de máquinas
+CREATE TABLE tipos_maquina (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) UNIQUE
+);
+
+-- 🔹 Máquinas
+CREATE TABLE maquinas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    id_tipo INT,
+    cantidad INT,
+    FOREIGN KEY (id_tipo) REFERENCES tipos_maquina(id)
+);
+
+-- 🔹 Usuarios
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    rut VARCHAR(20) UNIQUE,
+    correo VARCHAR(100),
+    contrasena VARCHAR(100)
+);
+
+-- 🔹 Rutinas
+CREATE TABLE rutinas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE,
+    descripcion TEXT
+);
+
+-- 🔹 Relación Usuario ↔ Rutina
+CREATE TABLE usuario_rutina (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT,
+    id_rutina INT,
+    fecha_inicio DATE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id),
+    FOREIGN KEY (id_rutina) REFERENCES rutinas(id)
+);
+
+-- 🔹 Horarios
+CREATE TABLE horarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_maquina INT,
+    tipo VARCHAR(50),
+    fecha DATE,
+    hora_inicio TIME,
+    hora_fin TIME,
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id)
+);
+
+-- 🔹 Mantenimientos
+CREATE TABLE mantenimientos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_maquina INT,
+    fecha DATE,
+    descripcion VARCHAR(255),
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id)
+);
+
+-- 🔹 Reservas (usuario usa máquina)
+CREATE TABLE reservas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT,
+    id_maquina INT,
+    fecha DATE,
+    hora_inicio TIME,
+    hora_fin TIME,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id),
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id)
+);
+
+-- 🔹 Progreso
+CREATE TABLE progreso (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT,
+    id_rutina INT,
+    peso DECIMAL(5,2),
+    repeticiones INT,
+    fecha DATE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id),
+    FOREIGN KEY (id_rutina) REFERENCES rutinas(id)
+);
+
+-- =====================
+-- 🔥 INSERTS
+-- =====================
+
 -- Tipos de máquinas
 INSERT INTO tipos_maquina (nombre) VALUES
 ('Piernas'),
@@ -56,5 +149,3 @@ INSERT INTO reservas (id_usuario, id_maquina, fecha, hora_inicio, hora_fin) VALU
 INSERT INTO progreso (id_usuario, id_rutina, peso, repeticiones, fecha) VALUES
 (1, 1, 50.0, 10, '2026-04-10'),
 (2, 2, 40.0, 12, '2026-04-10');
-
-ALTER TABLE usuarios ADD UNIQUE (rut);
