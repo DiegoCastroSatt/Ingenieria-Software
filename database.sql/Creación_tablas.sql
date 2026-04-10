@@ -87,10 +87,6 @@ CREATE TABLE progreso (
     FOREIGN KEY (id_rutina) REFERENCES rutinas(id)
 );
 
--- =====================
--- 🔥 INSERTS
--- =====================
-
 -- Tipos de máquinas
 INSERT INTO tipos_maquina (nombre) VALUES
 ('Piernas'),
