@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Softawer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6241016dc3d58e61f35b485087eeecb36fc7a3f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f58f489c5a267e0f2a63f9e1ee5bce0282a6e327")]
 [assembly: System.Reflection.AssemblyProductAttribute("Softawer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Softawer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
