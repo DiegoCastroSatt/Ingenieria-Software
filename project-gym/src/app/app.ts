@@ -20,8 +20,13 @@ export class App {
   toggleRoutine(header: HTMLElement) {
     const body = header.nextElementSibling as HTMLElement;
     const arrow = header.querySelector('.routine-arrow') as HTMLElement;
+
     body.classList.toggle('open');
-    arrow.style.transform = body.classList.contains('open') ? 'rotate(90deg)' : '';
+    if (arrow) {
+      arrow.style.transform = body.classList.contains('open')
+        ? 'rotate(90deg)'
+        : '';
+    }
   }
 
   toggleEx(el: HTMLElement) {
@@ -30,8 +35,10 @@ export class App {
   }
 
   abrirLogin() {
-    document.getElementById('loginModal')?.classList.add('show');
+    const modal = document.getElementById('loginModal');
     const err = document.getElementById('loginError');
+
+    modal?.classList.add('show');
     if (err) err.style.display = 'none';
   }
 
