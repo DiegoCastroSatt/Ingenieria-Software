@@ -186,4 +186,96 @@
   <img id="machineTooltipImg" src="" alt="">
   <span id="machineTooltipName"></span>
 </div>
+
+<script>
+  function toggleMenu(){
+    const btn=document.getElementById('menuBtn');
+    const dd=document.getElementById('dropdown');
+    btn.classList.toggle('open');
+    dd.classList.toggle('show');
+  }
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.menu-wrapper')){
+      document.getElementById('menuBtn').classList.remove('open');
+      document.getElementById('dropdown').classList.remove('show');
+    }
+  });
+  function toggleRoutine(header){
+    const body=header.nextElementSibling;
+    const arrow=header.querySelector('.routine-arrow');
+    body.classList.toggle('open');
+    arrow.style.transform=body.classList.contains('open')?'rotate(90deg)':'';
+  }
+  function toggleEx(el){
+    el.classList.toggle('done');
+    el.textContent=el.classList.contains('done')?'✓':'';
+  }
+  function abrirLogin(){
+    document.getElementById('loginModal').classList.add('show');
+    document.getElementById('loginError').style.display='none';
+  }
+  function cerrarLogin(){
+    document.getElementById('loginModal').classList.remove('show');
+  }
+  function abrirRegistro(){
+    document.getElementById('registroModal').classList.add('show');
+  }
+  function cerrarRegistro(){
+    document.getElementById('registroModal').classList.remove('show');
+  }
+  function intentarLogin(){
+    const u=document.getElementById('inputUsuario').value.trim();
+    const p=document.getElementById('inputPass').value.trim();
+    if(u&&p){
+      cerrarLogin();
+      alert('¡Bienvenido, '+u+'!');
+    } else {
+      document.getElementById('loginError').style.display='block';
+    }
+  }
+  document.getElementById('loginModal').addEventListener('click',function(e){
+    if(e.target===this) cerrarLogin();
+  });
+  document.getElementById('registroModal').addEventListener('click',function(e){
+    if(e.target===this) cerrarRegistro();
+  });
+
+  // Tooltip imagen máquinas
+  const tooltip = document.getElementById('machineTooltip');
+  const tooltipImg = document.getElementById('machineTooltipImg');
+  const tooltipName = document.getElementById('machineTooltipName');
+  let hideTimer;
+
+  document.addEventListener('mouseover', function(e) {
+    const li = e.target.closest('li[data-img]');
+    if (!li) return;
+    clearTimeout(hideTimer);
+    const img = li.getAttribute('data-img');
+    const name = li.textContent.trim();
+    tooltipImg.src = img;
+    tooltipName.textContent = name;
+    tooltip.classList.add('visible');
+    posTooltip(e);
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (tooltip.classList.contains('visible')) posTooltip(e);
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    const li = e.target.closest('li[data-img]');
+    if (!li) return;
+    hideTimer = setTimeout(() => tooltip.classList.remove('visible'), 120);
+  });
+
+  function posTooltip(e) {
+    const tw = 210, th = 180;
+    let x = e.clientX + 16;
+    let y = e.clientY + 16;
+    if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 12;
+    if (y + th > window.innerHeight - 8) y = e.clientY - th - 12;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+  }
+</script>
 </body>
