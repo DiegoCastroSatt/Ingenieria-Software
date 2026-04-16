@@ -1,4 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
+using System;
+using MySql.Data.MySqlClient;
 
 class Program
 {
@@ -6,7 +8,7 @@ class Program
     {
         string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=1234;";
 
-        Console.Write("Usuario: ");
+        Console.Write("Nombre: ");
         string user = Console.ReadLine();
 
         Console.Write("Password: ");
@@ -15,7 +17,8 @@ class Program
         using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
             conn.Open();
-            string queryLogin = "SELECT * FROM usuarios WHERE nombre=@user AND password=@pass";
+
+            string queryLogin = "SELECT * FROM usuarios WHERE nombre=@user AND contrasena=@pass";
 
             using (MySqlCommand cmd = new MySqlCommand(queryLogin, conn))
             {
@@ -32,19 +35,27 @@ class Program
                 }
             }
 
-            Console.WriteLine("❌ Usuario no existe. Creando cuenta...");
+            Console.WriteLine("Usuario no existe. Creando cuenta...");
 
-            string queryInsert = "INSERT INTO usuarios (nombre, password) VALUES (@user, @pass)";
+            Console.Write("Ingrese RUT: ");
+            string rut = Console.ReadLine();
+
+            Console.Write("Ingrese Correo: ");
+            string correo = Console.ReadLine();
+
+            string queryInsert = "INSERT INTO usuarios (nombre, rut, correo, contrasena) VALUES (@user, @rut, @correo, @pass)";
 
             using (MySqlCommand cmd = new MySqlCommand(queryInsert, conn))
             {
                 cmd.Parameters.AddWithValue("@user", user);
+                cmd.Parameters.AddWithValue("@rut", rut);
+                cmd.Parameters.AddWithValue("@correo", correo);
                 cmd.Parameters.AddWithValue("@pass", pass);
 
                 cmd.ExecuteNonQuery();
             }
 
-            Console.WriteLine("Cuenta creada y ");
+            Console.WriteLine("Cuenta creada correctamente");
         }
     }
 }
