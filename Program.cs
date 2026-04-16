@@ -6,7 +6,7 @@ class Program
 {
     static void Main()
     {
-        string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=1234;";
+        string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=4321;";
 
         Console.Write("Nombre: ");
         string user = Console.ReadLine();
