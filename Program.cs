@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿//using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,7 @@ var app = builder.Build();
 
 app.UseCors("AllowAll");
 
-string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=4321;";
+string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=1234;";
 
 app.MapPost("/login", (UserLogin login) =>
 {
