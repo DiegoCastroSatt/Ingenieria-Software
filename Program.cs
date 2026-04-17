@@ -1,61 +1,99 @@
 ﻿using MySql.Data.MySqlClient;
-using System;
 using MySql.Data.MySqlClient;
 
-class Program
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
 {
-    static void Main()
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
+
+var app = builder.Build();
+
+app.UseCors("AllowAll");
+
+string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=4321;";
+
+app.MapPost("/login", (UserLogin login) =>
+{
+    using (MySqlConnection conn = new MySqlConnection(connectionString))
     {
-        string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=4321;";
+        conn.Open();
 
-        Console.Write("Nombre: ");
-        string user = Console.ReadLine();
+        string query = "SELECT * FROM usuarios WHERE nombre=@user AND contrasena=@pass";
 
-        Console.Write("Password: ");
-        string pass = Console.ReadLine();
-
-        using (MySqlConnection conn = new MySqlConnection(connectionString))
+        using (MySqlCommand cmd = new MySqlCommand(query, conn))
         {
-            conn.Open();
+            cmd.Parameters.AddWithValue("@user", login.Nombre);
+            cmd.Parameters.AddWithValue("@pass", login.Password);
 
-            string queryLogin = "SELECT * FROM usuarios WHERE nombre=@user AND contrasena=@pass";
-
-            using (MySqlCommand cmd = new MySqlCommand(queryLogin, conn))
+            using (var reader = cmd.ExecuteReader())
             {
-                cmd.Parameters.AddWithValue("@user", user);
-                cmd.Parameters.AddWithValue("@pass", pass);
-
-                using (MySqlDataReader reader = cmd.ExecuteReader())
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        Console.WriteLine("Login correcto");
-                        return;
-                    }
+                    return Results.Ok("Login correcto");
                 }
             }
-
-            Console.WriteLine("Usuario no existe. Creando cuenta...");
-
-            Console.Write("Ingrese RUT: ");
-            string rut = Console.ReadLine();
-
-            Console.Write("Ingrese Correo: ");
-            string correo = Console.ReadLine();
-
-            string queryInsert = "INSERT INTO usuarios (nombre, rut, correo, contrasena) VALUES (@user, @rut, @correo, @pass)";
-
-            using (MySqlCommand cmd = new MySqlCommand(queryInsert, conn))
-            {
-                cmd.Parameters.AddWithValue("@user", user);
-                cmd.Parameters.AddWithValue("@rut", rut);
-                cmd.Parameters.AddWithValue("@correo", correo);
-                cmd.Parameters.AddWithValue("@pass", pass);
-
-                cmd.ExecuteNonQuery();
-            }
-
-            Console.WriteLine("Cuenta creada correctamente");
         }
     }
+
+    return Results.BadRequest("Usuario o contraseña incorrectos");
+});
+
+
+app.MapPost("/register", (UserRegister user) =>
+{
+    using (MySqlConnection conn = new MySqlConnection(connectionString))
+    {
+        conn.Open();
+
+        // verificar si ya existe
+        string checkQuery = "SELECT * FROM usuarios WHERE correo=@correo";
+
+        using (MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn))
+        {
+            checkCmd.Parameters.AddWithValue("@correo", user.Correo);
+
+            using (var reader = checkCmd.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return Results.BadRequest("El usuario ya existe");
+                }
+            }
+        }
+
+        string insertQuery = "INSERT INTO usuarios (nombre, rut, correo, contrasena) VALUES (@nombre, @rut, @correo, @pass)";
+
+        using (MySqlCommand cmd = new MySqlCommand(insertQuery, conn))
+        {
+            cmd.Parameters.AddWithValue("@nombre", user.Nombre);
+            cmd.Parameters.AddWithValue("@rut", user.Rut);
+            cmd.Parameters.AddWithValue("@correo", user.Correo);
+            cmd.Parameters.AddWithValue("@pass", user.Password);
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    return Results.Ok("Usuario registrado correctamente");
+});
+
+app.Run();
+
+public class UserLogin
+{
+    public string Nombre { get; set; }
+    public string Password { get; set; }
+}
+
+public class UserRegister
+{
+    public string Nombre { get; set; }
+    public string Rut { get; set; }
+    public string Correo { get; set; }
+    public string Password { get; set; }
 }
