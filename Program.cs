@@ -1,5 +1,4 @@
 ﻿using MySql.Data.MySqlClient;
-using MySql.Data.MySqlClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,14 +85,14 @@ app.Run();
 
 public class UserLogin
 {
-    public string Nombre { get; set; }
-    public string Password { get; set; }
+    public string Nombre { get; set; } = "";
+    public string Password { get; set; } = "";
 }
 
 public class UserRegister
 {
-    public string Nombre { get; set; }
-    public string Rut { get; set; }
-    public string Correo { get; set; }
-    public string Password { get; set; }
+    public string Nombre { get; set; } = "";
+    public string Rut { get; set; } = "";
+    public string Correo { get; set; } = "";
+    public string Password { get; set; } = "";
 }
