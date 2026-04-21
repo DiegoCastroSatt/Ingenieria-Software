@@ -8,4 +8,5 @@ Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cli
 Epics:
 1. Seguimiento de progreso
 2. Reserva de maquinas
-3. Gestión de usuarios y rutinas
+3. Gestión de usuarios
+4. Gestión de rutinas
