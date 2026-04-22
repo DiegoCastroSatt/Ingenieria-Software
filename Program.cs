@@ -1,206 +1,140 @@
-using System.ComponentModel.DataAnnotations;
+//using MySql.Data.MySqlClient;
 using MySqlConnector;
 
 var builder = WebApplication.CreateBuilder(args);
 
-const string CorsPolicyName = "FrontendClient";
-
-var connectionString = builder.Configuration.GetConnectionString("GymDb")
-    ?? throw new InvalidOperationException("Connection string 'GymDb' was not configured.");
-
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-    ?? ["http://localhost:4200"];
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(CorsPolicyName, policy =>
-    {
-        policy.WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
-app.UseCors(CorsPolicyName);
+app.UseCors("AllowAll");
 
-app.MapGet("/api/health", async () =>
+string connectionString = "server=localhost;database=Gym_Software;user=gymuser;password=1234;";
+
+app.MapPost("/login", (UserLogin login) =>
 {
-    try
+    using (MySqlConnection conn = new MySqlConnection(connectionString))
     {
-        await using var connection = new MySqlConnection(connectionString);
-        await connection.OpenAsync();
+        conn.Open();
 
-        await using var command = new MySqlCommand("SELECT 1", connection);
-        await command.ExecuteScalarAsync();
+        string query = "SELECT * FROM usuarios WHERE nombre=@user AND contrasena=@pass";
 
-        return Results.Ok(new HealthResponse("ok", "API and database connection are available."));
+        using (MySqlCommand cmd = new MySqlCommand(query, conn))
+        {
+            cmd.Parameters.AddWithValue("@user", login.Nombre);
+            cmd.Parameters.AddWithValue("@pass", login.Password);
+
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    return Results.Ok("Login correcto");
+                }
+            }
+        }
     }
-    catch (Exception exception)
-    {
-        return Results.Problem(
-            detail: exception.Message,
-            title: "Database connection failed",
-            statusCode: StatusCodes.Status503ServiceUnavailable);
-    }
+
+    return Results.BadRequest("Usuario o contraseña incorrectos");
 });
 
-app.MapPost("/api/auth/login", LoginAsync);
-app.MapPost("/api/auth/register", RegisterAsync);
 
-// Legacy routes kept for compatibility with existing frontend code.
-app.MapPost("/login", LoginAsync);
-app.MapPost("/register", RegisterAsync);
-
-app.Run();
-
-async Task<IResult> LoginAsync(LoginRequest login)
+app.MapPost("/register", (UserRegister user) =>
 {
-    var validationError = ValidateLogin(login);
-    if (validationError is not null)
+    using (MySqlConnection conn = new MySqlConnection(connectionString))
     {
-        return validationError;
-    }
+        conn.Open();
 
-    try
-    {
-        await using var connection = new MySqlConnection(connectionString);
-        await connection.OpenAsync();
+        // verificar si ya existe
+        string checkQuery = "SELECT * FROM usuarios WHERE correo=@correo";
 
-        const string query = """
-            SELECT id, nombre, correo
-            FROM usuarios
-            WHERE nombre = @nombre AND contrasena = @password
-            LIMIT 1;
-            """;
-
-        await using var command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@nombre", login.Nombre.Trim());
-        command.Parameters.AddWithValue("@password", login.Password.Trim());
-
-        await using var reader = await command.ExecuteReaderAsync();
-
-        if (!await reader.ReadAsync())
+        using (MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn))
         {
-            return Results.BadRequest("Usuario o contrasena incorrectos.");
-        }
+            checkCmd.Parameters.AddWithValue("@correo", user.Correo);
 
-        var user = new AuthUserResponse(
-            reader.GetInt32("id"),
-            reader.GetString("nombre"),
-            reader.GetString("correo"));
-
-        return Results.Ok(new AuthResponse("Login correcto", user));
-    }
-    catch (Exception exception)
-    {
-        return Results.Problem(
-            detail: exception.Message,
-            title: "Login failed",
-            statusCode: StatusCodes.Status500InternalServerError);
-    }
-}
-
-async Task<IResult> RegisterAsync(RegisterRequest user)
-{
-    var validationError = ValidateRegister(user);
-    if (validationError is not null)
-    {
-        return validationError;
-    }
-
-    try
-    {
-        await using var connection = new MySqlConnection(connectionString);
-        await connection.OpenAsync();
-
-        const string duplicateQuery = """
-            SELECT COUNT(*)
-            FROM usuarios
-            WHERE correo = @correo OR rut = @rut;
-            """;
-
-        await using (var duplicateCommand = new MySqlCommand(duplicateQuery, connection))
-        {
-            duplicateCommand.Parameters.AddWithValue("@correo", user.Correo.Trim());
-            duplicateCommand.Parameters.AddWithValue("@rut", user.Rut.Trim());
-
-            var existingUsers = Convert.ToInt32(await duplicateCommand.ExecuteScalarAsync());
-            if (existingUsers > 0)
+            using (var reader = checkCmd.ExecuteReader())
             {
-                return Results.BadRequest("Ya existe un usuario con ese correo o RUT.");
+                if (reader.Read())
+                {
+                    return Results.BadRequest("El usuario ya existe");
+                }
             }
         }
 
-        const string insertQuery = """
-            INSERT INTO usuarios (nombre, rut, correo, contrasena)
-            VALUES (@nombre, @rut, @correo, @password);
-            SELECT LAST_INSERT_ID();
-            """;
+        string insertQuery = "INSERT INTO usuarios (nombre, rut, correo, contrasena) VALUES (@nombre, @rut, @correo, @pass)";
 
-        await using var insertCommand = new MySqlCommand(insertQuery, connection);
-        insertCommand.Parameters.AddWithValue("@nombre", user.Nombre.Trim());
-        insertCommand.Parameters.AddWithValue("@rut", user.Rut.Trim());
-        insertCommand.Parameters.AddWithValue("@correo", user.Correo.Trim());
-        insertCommand.Parameters.AddWithValue("@password", user.Password.Trim());
+        using (MySqlCommand cmd = new MySqlCommand(insertQuery, conn))
+        {
+            cmd.Parameters.AddWithValue("@nombre", user.Nombre);
+            cmd.Parameters.AddWithValue("@rut", user.Rut);
+            cmd.Parameters.AddWithValue("@correo", user.Correo);
+            cmd.Parameters.AddWithValue("@pass", user.Password);
 
-        var newUserId = Convert.ToInt32(await insertCommand.ExecuteScalarAsync());
-        var response = new AuthResponse(
-            "Usuario registrado correctamente.",
-            new AuthUserResponse(newUserId, user.Nombre.Trim(), user.Correo.Trim()));
-
-        return Results.Ok(response);
+            cmd.ExecuteNonQuery();
+        }
     }
-    catch (Exception exception)
-    {
-        return Results.Problem(
-            detail: exception.Message,
-            title: "Register failed",
-            statusCode: StatusCodes.Status500InternalServerError);
-    }
-}
 
-static IResult? ValidateLogin(LoginRequest login)
+    return Results.Ok("Usuario registrado correctamente");
+});
+
+app.Run();
+
+public class UserLogin
 {
-    if (string.IsNullOrWhiteSpace(login.Nombre) || string.IsNullOrWhiteSpace(login.Password))
-    {
-        return Results.BadRequest("Debes ingresar usuario y contrasena.");
-    }
-
-    return null;
+    public string Nombre { get; set; } = "";
+    public string Password { get; set; } = "";
 }
 
-static IResult? ValidateRegister(RegisterRequest user)
+public class UserRegister
 {
-    if (string.IsNullOrWhiteSpace(user.Nombre) ||
-        string.IsNullOrWhiteSpace(user.Rut) ||
-        string.IsNullOrWhiteSpace(user.Correo) ||
-        string.IsNullOrWhiteSpace(user.Password))
-    {
-        return Results.BadRequest("Todos los campos son obligatorios.");
-    }
+    public string Nombre { get; set; } = "";
+    public string Rut { get; set; } = "";
+    public string Correo { get; set; } = "";
+    public string Password { get; set; } = "";
+}
+public class RutineView
+{
+    public int Id { get; set; }
 
-    var emailValidator = new EmailAddressAttribute();
-    if (!emailValidator.IsValid(user.Correo))
-    {
-        return Results.BadRequest("El correo no tiene un formato valido.");
-    }
+    public string Name { get; set; } = "";
 
-    if (user.Password.Trim().Length < 4)
-    {
-        return Results.BadRequest("La contrasena debe tener al menos 4 caracteres.");
-    }
+    public string Description { get; set; } = "";
 
-    return null;
+    public string Icon { get; set; } = "";
+
+    public string Accent { get; set; } = "";
+
+    public List<ExerciseView> Exercises { get; set; } = new();
 }
 
-public record LoginRequest(string Nombre, string Password);
+public class ExerciseView
+{
+    public string Name { get; set; } = "";
 
-public record RegisterRequest(string Nombre, string Rut, string Correo, string Password);
+    public string Detail { get; set; } = "";
 
-public record AuthUserResponse(int Id, string Nombre, string Correo);
+    public string? Image { get; set; }
+}
+public class RutineCreate
+{
+    public string Name { get; set; } = "";
 
-public record AuthResponse(string Message, AuthUserResponse User);
+    public string Description { get; set; } = "";
 
-public record HealthResponse(string Status, string Message);
+    public string Icon { get; set; } = "";
+
+    public string Accent { get; set; } = "";
+
+    public List<ExerciseCreate> Exercises { get; set; } = new();
+}
+public class RutineAsignate
+{
+    public int UserId { get; set; }
+
+    public int RutineId { get; set; }
+}
