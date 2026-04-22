@@ -2,9 +2,13 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+<<<<<<< HEAD
 import { GymService } from './gym-data.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from'@angular/router'
+=======
+import { AuthResponse, GymService } from './gym-data.service';
+>>>>>>> 513458903895cc74987c786a1b4b287e66f3191b
 
 type RoutineExercise = {
   name: string;
@@ -346,10 +350,10 @@ export class App {
     this.loginError.set('');
 
     this.gymService.login(nombre, password).subscribe({
-      next: (response) => {
+      next: (response: AuthResponse) => {
         this.loginLoading.set(false);
         this.cerrarLogin();
-        window.alert(`Conectado. El servidor responde: ${response}`);
+        window.alert(`Conectado. ${response.message} Bienvenido, ${response.user.nombre}.`);
       },
       error: (error: HttpErrorResponse) => {
         this.loginLoading.set(false);
@@ -377,9 +381,9 @@ export class App {
     this.registerSuccess.set('');
 
     this.gymService.registro(payload).subscribe({
-      next: (response) => {
+      next: (response: AuthResponse) => {
         this.registerLoading.set(false);
-        this.registerSuccess.set(response);
+        this.registerSuccess.set(response.message);
         this.registerForm = {
           nombre: '',
           rut: '',
