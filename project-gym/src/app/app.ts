@@ -3,6 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GymService } from './gym-data.service';
+import { HttpClient } from '@angular/common/http';
+import { Router } from'@angular/router'
 
 type RoutineExercise = {
   name: string;
@@ -41,6 +43,32 @@ type TooltipState = {
   styleUrl: './app.css'
 })
 export class App {
+  /*user: any = null;
+  form = {
+    email: '',
+    password: ''
+  };
+  constructor(private http: HttpClient, private router: Router) {}
+  login() {
+    this.loginLoading.set(true);
+    this.loginError.set('');
+
+    this.http.post<any>('https://localhost:5001/api/auth/login', this.form)
+      .subscribe({
+        next: (res) => {
+          localStorage.setItem('user', JSON.stringify(res));
+          this.user = res;
+
+          this.loginLoading.set(false);
+          this.cerrarLogin();
+          this.router.navigate(['/home']);
+        },
+        error: (error) => {
+          this.loginLoading.set(false);
+          this.loginError.set(error?.error || 'Usuario o contraseña incorrectos.');
+        }
+      });
+  } */
   private readonly gymService = inject(GymService);
 
   protected readonly title = signal('project-gym');
@@ -84,7 +112,15 @@ export class App {
           detail: 'Empuje para tren inferior',
           image:
             'https://mundoentrenamiento.com/wp-content/uploads/2022/11/mujer-haciendo-prensa-para-piernas.jpg'
-        }
+        },
+        {
+        name: 'Peso muerto',
+        detail: 'Fuerza global del cuerpo'
+      },
+      {
+        name: 'Sentadilla con barra',
+        detail: 'Ejercicio base de fuerza'
+      },
       ]
     },
     {
@@ -103,6 +139,14 @@ export class App {
           name: 'Curl de biceps',
           detail: 'Brazos con mancuernas',
           image: 'https://sdmed.cl/wp-content/uploads/2022/10/2-9-600x600.jpg'
+        },
+        {
+          name: 'Press de pecho con mancuernas',
+          detail: 'Desarrollo del pectoral'
+        },
+        {
+          name: 'Elevaciones laterales',
+          detail: 'Aislamiento de hombros'
         }
       ]
     },
@@ -112,16 +156,96 @@ export class App {
       description: 'Resistencia cardiovascular',
       accent: 'rgba(34,197,94,0.12)',
       exercises: [
+      {
+        name: 'Paralelas',
+        detail: 'Trabajo funcional y resistencia'
+      },
+      {
+        name: 'Circuito HIIT',
+        detail: 'Intervalos de alta intensidad'
+      },
+      {
+        name: 'Trote en cinta',
+        detail: 'Cardio continuo moderado'
+      },
+      {
+        name: 'Bicicleta estática',
+        detail: 'Resistencia de bajo impacto'
+      }
+    ]
+    },
+    {
+      icon: 'MA',
+      name: 'Motor Angular',
+      description: 'Desarrollo de tren inferior',
+      accent: 'rgba(168,85,247,0.12)',
+      exercises: [
         {
-          name: 'Paralelas',
-          detail: 'Trabajo funcional y resistencia'
+          name: 'Prensa de piernas',
+          detail: 'Trabajo de cuádriceps y glúteos'
         },
         {
-          name: 'Circuito HIIT',
-          detail: 'Intervalos de alta intensidad'
+          name: 'Extensión de cuádriceps',
+          detail: 'Aislamiento de cuádriceps'
+        },
+        {
+          name: 'Curl femoral',
+          detail: 'Trabajo de isquiotibiales'
+        },
+        {
+          name: 'Gemelos en máquina',
+          detail: 'Desarrollo de pantorrillas'
         }
       ]
-    }
+    },
+    {
+    icon: 'FU',
+    name: 'Funcional',
+    description: 'Entrenamiento de movimientos completos',
+    accent: 'rgba(251,146,60,0.15)',
+    exercises: [
+      {
+        name: 'Burpees',
+        detail: 'Ejercicio completo de cuerpo'
+      },
+      {
+        name: 'Kettlebell swing',
+        detail: 'Potencia de cadera y entrena glúteos y isquiotibiales.'
+      },
+      {
+        name: 'Saltos al cajón',
+        detail: 'Desarrollan potencia explosiva, fuerza en el tren inferior.'
+      },
+      {
+        name: 'Plancha dinámica',
+        detail: 'Trabajo abdominal, oblicuos y espalda baja'
+      }
+    ]
+  },
+  {
+    icon: 'CO',
+    name: 'Core',
+    description: 'Fortalecimiento abdominal y lumbar',
+    accent: 'rgba(99,102,241,0.15)',
+    exercises: [
+      {
+        name: 'Crunch abdominal',
+        detail: 'Trabajo básico de abdomen'
+      },
+      {
+        name: 'Elevaciones de piernas',
+        detail: 'Abdomen inferior'
+      },
+      {
+        name: 'Plancha frontal',
+        detail: 'Estabilidad central'
+      },
+      {
+        name: 'Russian twist',
+        detail: 'Trabajo de oblicuos'
+      }
+    ]
+  }
   ]);
 
   protected readonly expandedRoutines = signal<Record<number, boolean>>({});
@@ -217,7 +341,7 @@ export class App {
       this.loginError.set('Por favor, completa ambos campos.');
       return;
     }
-
+  
     this.loginLoading.set(true);
     this.loginError.set('');
 
