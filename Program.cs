@@ -130,11 +130,18 @@ public class RutineCreate
 
     public string Accent { get; set; } = "";
 
-    public List<ExerciseCreate> Exercises { get; set; } = new();
+    public List<Exercise> Exercises { get; set; } = new();
 }
 public class RutineAsignate
 {
     public int UserId { get; set; }
 
     public int RutineId { get; set; }
+}
+public class Exercise
+{
+    public string Name { get; set; } = "";
+
+    public string Description { get; set; } = "";
+
 }
