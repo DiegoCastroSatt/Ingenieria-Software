@@ -2,10 +2,9 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { GymService } from './gym-data.service';
+import { GymService, AuthResponse } from './gym-data.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from'@angular/router'
-import { AuthResponse} from './gym-data.service';
 
 type RoutineExercise = {
   name: string;
