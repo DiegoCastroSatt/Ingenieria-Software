@@ -1,30 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { enviroment } from '../enviroments/enviroment';
-
-export type RegisterPayload = {
-  nombre: string;
-  rut: string;
-  correo: string;
-  password: string;
-};
-
-export type AuthUser = {
-  id: number;
-  nombre: string;
-  correo: string;
-};
-
-export type AuthResponse = {
-  message: string;
-  user: AuthUser;
-};
-
-export type HealthResponse = {
-  status: string;
-  message: string;
-};
+import { enviroment } from '../../../enviroments/enviroment';
+import { AuthResponse, HealthResponse, RegisterPayload } from '../models/auth.models';
 
 @Injectable({
   providedIn: 'root'
