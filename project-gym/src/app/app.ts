@@ -1,37 +1,29 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AuthResponse } from './core/models/auth.models';
+import {
+  ActualizarPerfilImcPayload,
+  AgregarDetalleSesionPayload,
+  AuthResponse,
+  AuthUser,
+  CompletarSesionPayload,
+  Ejercicio,
+  ImcRecommendationResponse,
+  Maquina,
+  Reserva,
+  RutinaDetalle,
+  RutinaResumen,
+  SesionEntrenamiento,
+  SesionHistorial
+} from './core/models/auth.models';
 import { GymService } from './core/services/gym-data.service';
-
-type RoutineExercise = {
-  name: string;
-  detail: string;
-  image?: string;
-};
-
-type Routine = {
-  icon: string;
-  name: string;
-  description: string;
-  accent: string;
-  exercises: RoutineExercise[];
-};
 
 type DailyExercise = {
   name: string;
   detail: string;
   sets: string;
   done: boolean;
-};
-
-type TooltipState = {
-  visible: boolean;
-  name: string;
-  image: string;
-  left: number;
-  top: number;
 };
 
 @Component({
@@ -41,34 +33,9 @@ type TooltipState = {
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
-  /*user: any = null;
-  form = {
-    email: '',
-    password: ''
-  };
-  constructor(private http: HttpClient, private router: Router) {}
-  login() {
-    this.loginLoading.set(true);
-    this.loginError.set('');
-
-    this.http.post<any>('https://localhost:5001/api/auth/login', this.form)
-      .subscribe({
-        next: (res) => {
-          localStorage.setItem('user', JSON.stringify(res));
-          this.user = res;
-
-          this.loginLoading.set(false);
-          this.cerrarLogin();
-          this.router.navigate(['/home']);
-        },
-        error: (error) => {
-          this.loginLoading.set(false);
-          this.loginError.set(error?.error || 'Usuario o contraseña incorrectos.');
-        }
-      });
-  } */
+export class App implements OnInit {
   private readonly gymService = inject(GymService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly title = signal('project-gym');
   protected readonly menuOpen = signal(false);
@@ -79,175 +46,26 @@ export class App {
   protected readonly registerSuccess = signal('');
   protected readonly loginLoading = signal(false);
   protected readonly registerLoading = signal(false);
-  protected readonly tooltip = signal<TooltipState>({
-    visible: false,
-    name: '',
-    image: '',
-    left: 0,
-    top: 0
-  });
+  protected readonly currentUser = signal<AuthUser | null>(null);
+  protected readonly apiMessage = signal('');
+  protected readonly healthStatus = signal('Comprobando backend...');
+  protected readonly bmiResult = signal<ImcRecommendationResponse | null>(null);
+  protected readonly recommendedRoutines = signal<RutinaResumen[]>([]);
+  protected readonly predefinedRoutines = signal<RutinaResumen[]>([]);
+  protected readonly userRoutines = signal<RutinaResumen[]>([]);
+  protected readonly routineDetails = signal<Record<number, RutinaDetalle>>({});
+  protected readonly expandedRoutines = signal<Record<number, boolean>>({});
+  protected readonly machines = signal<Maquina[]>([]);
+  protected readonly exercises = signal<Ejercicio[]>([]);
+  protected readonly reservations = signal<Reserva[]>([]);
+  protected readonly currentSession = signal<SesionEntrenamiento | null>(null);
+  protected readonly workoutHistory = signal<SesionHistorial[]>([]);
 
   protected readonly todayExercises = signal<DailyExercise[]>([
     { name: 'Press de pecho', detail: 'Maquina', sets: '4 x 12', done: true },
     { name: 'Fondos asistidos', detail: 'Peso corporal', sets: '3 x 10', done: false },
     { name: 'Press inclinado', detail: 'Mancuernas', sets: '3 x 15', done: false }
   ]);
-
-  protected readonly routines = signal<Routine[]>([
-    {
-      icon: 'FI',
-      name: 'Fuerza',
-      description: 'Entrenamiento de fuerza',
-      accent: 'rgba(230,57,70,0.15)',
-      exercises: [
-        {
-          name: 'Maquina Smith',
-          detail: 'Trabajo guiado para fuerza',
-          image:
-            'https://image.made-in-china.com/202f0j00zSghrtckZsoO/Multi-Function-Sport-Commercial-Life-Fitness-Equipment-Exercise-Machine-Smith-Machine-Gym-Machine-for-Indoor-Home-Gym-Strength-Training.jpg'
-        },
-        {
-          name: 'Prensa de piernas',
-          detail: 'Empuje para tren inferior',
-          image:
-            'https://mundoentrenamiento.com/wp-content/uploads/2022/11/mujer-haciendo-prensa-para-piernas.jpg'
-        },
-        {
-        name: 'Peso muerto',
-        detail: 'Fuerza global del cuerpo'
-      },
-      {
-        name: 'Sentadilla con barra',
-        detail: 'Ejercicio base de fuerza'
-      },
-      ]
-    },
-    {
-      icon: 'HI',
-      name: 'Hipertrofia',
-      description: 'Aumento de masa muscular',
-      accent: 'rgba(56,189,248,0.12)',
-      exercises: [
-        {
-          name: 'Maquina de poleas',
-          detail: 'Trabajo de control y aislamiento',
-          image:
-            'https://www.maquinassanmartino.com/uploads/l_34_6002-a-fotos-poleas-800x600px2.jpg'
-        },
-        {
-          name: 'Curl de biceps',
-          detail: 'Brazos con mancuernas',
-          image: 'https://sdmed.cl/wp-content/uploads/2022/10/2-9-600x600.jpg'
-        },
-        {
-          name: 'Press de pecho con mancuernas',
-          detail: 'Desarrollo del pectoral'
-        },
-        {
-          name: 'Elevaciones laterales',
-          detail: 'Aislamiento de hombros'
-        }
-      ]
-    },
-    {
-      icon: 'CA',
-      name: 'Cardio',
-      description: 'Resistencia cardiovascular',
-      accent: 'rgba(34,197,94,0.12)',
-      exercises: [
-      {
-        name: 'Paralelas',
-        detail: 'Trabajo funcional y resistencia'
-      },
-      {
-        name: 'Circuito HIIT',
-        detail: 'Intervalos de alta intensidad'
-      },
-      {
-        name: 'Trote en cinta',
-        detail: 'Cardio continuo moderado'
-      },
-      {
-        name: 'Bicicleta estática',
-        detail: 'Resistencia de bajo impacto'
-      }
-    ]
-    },
-    {
-      icon: 'MA',
-      name: 'Motor Angular',
-      description: 'Desarrollo de tren inferior',
-      accent: 'rgba(168,85,247,0.12)',
-      exercises: [
-        {
-          name: 'Prensa de piernas',
-          detail: 'Trabajo de cuádriceps y glúteos'
-        },
-        {
-          name: 'Extensión de cuádriceps',
-          detail: 'Aislamiento de cuádriceps'
-        },
-        {
-          name: 'Curl femoral',
-          detail: 'Trabajo de isquiotibiales'
-        },
-        {
-          name: 'Gemelos en máquina',
-          detail: 'Desarrollo de pantorrillas'
-        }
-      ]
-    },
-    {
-    icon: 'FU',
-    name: 'Funcional',
-    description: 'Entrenamiento de movimientos completos',
-    accent: 'rgba(251,146,60,0.15)',
-    exercises: [
-      {
-        name: 'Burpees',
-        detail: 'Ejercicio completo de cuerpo'
-      },
-      {
-        name: 'Kettlebell swing',
-        detail: 'Potencia de cadera y entrena glúteos y isquiotibiales.'
-      },
-      {
-        name: 'Saltos al cajón',
-        detail: 'Desarrollan potencia explosiva, fuerza en el tren inferior.'
-      },
-      {
-        name: 'Plancha dinámica',
-        detail: 'Trabajo abdominal, oblicuos y espalda baja'
-      }
-    ]
-  },
-  {
-    icon: 'CO',
-    name: 'Core',
-    description: 'Fortalecimiento abdominal y lumbar',
-    accent: 'rgba(99,102,241,0.15)',
-    exercises: [
-      {
-        name: 'Crunch abdominal',
-        detail: 'Trabajo básico de abdomen'
-      },
-      {
-        name: 'Elevaciones de piernas',
-        detail: 'Abdomen inferior'
-      },
-      {
-        name: 'Plancha frontal',
-        detail: 'Estabilidad central'
-      },
-      {
-        name: 'Russian twist',
-        detail: 'Trabajo de oblicuos'
-      }
-    ]
-  }
-  ]);
-
-  protected readonly expandedRoutines = signal<Record<number, boolean>>({});
 
   protected loginForm = {
     nombre: '',
@@ -260,6 +78,59 @@ export class App {
     correo: '',
     password: ''
   };
+
+  protected bmiForm = {
+    fechaNacimiento: '',
+    sexo: 'masculino',
+    alturaCm: 175,
+    pesoKg: 75,
+    objetivo: 'ganar_fuerza',
+    nivelActividad: 'medio'
+  };
+
+  protected reservationForm = {
+    idMaquina: 0,
+    fechaReserva: '',
+    horaInicio: '10:00',
+    horaFin: '11:00'
+  };
+
+  protected sessionForm = {
+    idRutina: 0,
+    notas: ''
+  };
+
+  protected detailForm = {
+    idEjercicio: 0,
+    idMaquina: 0,
+    idReserva: 0,
+    seriesRealizadas: 3,
+    repeticionesRealizadas: 10,
+    pesoUsadoKg: 20,
+    duracionMinutos: 10,
+    esfuerzoPercibido: 6,
+    notas: ''
+  };
+
+  protected completeForm = {
+    porcentajeCompletado: 100,
+    caloriasEstimadas: 250,
+    tiempoTotalMinutos: 45,
+    observacion: '',
+    notas: ''
+  };
+
+  ngOnInit(): void {
+    this.reservationForm.fechaReserva = new Date().toISOString().slice(0, 10);
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.checkHealth();
+    this.loadCatalogs();
+    this.loadPredefinedRoutines();
+  }
 
   @HostListener('document:click', ['$event'])
   protected handleDocumentClick(event: MouseEvent): void {
@@ -281,6 +152,10 @@ export class App {
   }
 
   protected scrollToRutinas(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     document.getElementById('rutinas')?.scrollIntoView({ behavior: 'smooth' });
   }
 
@@ -288,15 +163,34 @@ export class App {
     this.menuOpen.update((value) => !value);
   }
 
-  protected toggleRoutine(index: number): void {
+  protected async toggleRoutine(index: number, routineId: number): Promise<void> {
+    const isOpen = this.expandedRoutines()[index];
     this.expandedRoutines.update((current) => ({
       ...current,
       [index]: !current[index]
     }));
+
+    if (!isOpen && !this.routineDetails()[routineId]) {
+      this.gymService.getRutina(routineId).subscribe({
+        next: (routine) => {
+          this.routineDetails.update((current) => ({
+            ...current,
+            [routineId]: routine
+          }));
+        },
+        error: () => {
+          this.apiMessage.set('No se pudo cargar el detalle de la rutina.');
+        }
+      });
+    }
   }
 
   protected isRoutineOpen(index: number): boolean {
     return !!this.expandedRoutines()[index];
+  }
+
+  protected getRoutineDetail(routineId: number): RutinaDetalle | null {
+    return this.routineDetails()[routineId] ?? null;
   }
 
   protected toggleExercise(index: number): void {
@@ -332,6 +226,17 @@ export class App {
     this.registerLoading.set(false);
   }
 
+  protected cerrarSesion(): void {
+    this.currentUser.set(null);
+    this.bmiResult.set(null);
+    this.recommendedRoutines.set([]);
+    this.userRoutines.set([]);
+    this.reservations.set([]);
+    this.currentSession.set(null);
+    this.workoutHistory.set([]);
+    this.apiMessage.set('Sesion cerrada.');
+  }
+
   protected intentarLogin(): void {
     const nombre = this.loginForm.nombre.trim();
     const password = this.loginForm.password.trim();
@@ -340,19 +245,21 @@ export class App {
       this.loginError.set('Por favor, completa ambos campos.');
       return;
     }
-  
+
     this.loginLoading.set(true);
     this.loginError.set('');
 
     this.gymService.login(nombre, password).subscribe({
       next: (response: AuthResponse) => {
         this.loginLoading.set(false);
+        this.currentUser.set(response.user);
         this.cerrarLogin();
-        window.alert(`Conectado. ${response.message} Bienvenido, ${response.user.nombre}.`);
+        this.apiMessage.set(`Sesion iniciada para ${response.user.nombre}.`);
+        this.loadUserData(response.user.id);
       },
       error: (error: HttpErrorResponse) => {
         this.loginLoading.set(false);
-        this.loginError.set(error?.error || 'Usuario o contrasena incorrectos.');
+        this.loginError.set(this.extractError(error, 'Usuario o contrasena incorrectos.'));
       }
     });
   }
@@ -367,7 +274,6 @@ export class App {
 
     if (!payload.nombre || !payload.rut || !payload.correo || !payload.password) {
       this.registerError.set('Completa todos los campos para continuar.');
-      this.registerSuccess.set('');
       return;
     }
 
@@ -379,65 +285,262 @@ export class App {
       next: (response: AuthResponse) => {
         this.registerLoading.set(false);
         this.registerSuccess.set(response.message);
-        this.registerForm = {
-          nombre: '',
-          rut: '',
-          correo: '',
-          password: ''
-        };
+        this.currentUser.set(response.user);
+        this.cerrarRegistro();
+        this.apiMessage.set(`Usuario ${response.user.nombre} registrado correctamente.`);
+        this.loadUserData(response.user.id);
       },
       error: (error: HttpErrorResponse) => {
         this.registerLoading.set(false);
-        this.registerError.set(error?.error || 'No fue posible registrar al usuario.');
+        this.registerError.set(this.extractError(error, 'No fue posible registrar al usuario.'));
       }
     });
   }
 
-  protected showTooltip(event: MouseEvent, exercise: RoutineExercise): void {
-    if (!exercise.image) {
+  protected guardarPerfilYCalcularImc(): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion primero.');
       return;
     }
 
-    this.tooltip.set({
-      visible: true,
-      name: exercise.name,
-      image: exercise.image,
-      ...this.calculateTooltipPosition(event)
+    const payload: ActualizarPerfilImcPayload = {
+      fechaNacimiento: this.bmiForm.fechaNacimiento || null,
+      sexo: this.bmiForm.sexo,
+      alturaCm: this.bmiForm.alturaCm,
+      pesoKg: this.bmiForm.pesoKg,
+      objetivo: this.bmiForm.objetivo,
+      nivelActividad: this.bmiForm.nivelActividad
+    };
+
+    this.gymService.calcularImc(user.id, payload).subscribe({
+      next: (response) => {
+        this.bmiResult.set(response);
+        this.recommendedRoutines.set(response.rutinasRecomendadas);
+        this.apiMessage.set(`IMC calculado: ${response.imc} (${response.categoriaImc}).`);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo calcular el IMC.'));
+      }
     });
   }
 
-  protected moveTooltip(event: MouseEvent): void {
-    const current = this.tooltip();
-
-    if (!current.visible) {
+  protected copiarRutina(idRutina: number): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para copiar una rutina.');
       return;
     }
 
-    this.tooltip.set({
-      ...current,
-      ...this.calculateTooltipPosition(event)
+    this.gymService.copiarRutina(idRutina, { idUsuario: user.id, activarRutina: true }).subscribe({
+      next: (routine) => {
+        this.apiMessage.set(`Rutina copiada: ${routine.nombre}.`);
+        this.loadUserData(user.id);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo copiar la rutina.'));
+      }
     });
   }
 
-  protected hideTooltip(): void {
-    this.tooltip.update((current) => ({ ...current, visible: false }));
+  protected crearReserva(): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para reservar una maquina.');
+      return;
+    }
+
+    this.gymService.crearReserva({
+      idUsuario: user.id,
+      idMaquina: this.reservationForm.idMaquina,
+      fechaReserva: this.reservationForm.fechaReserva,
+      horaInicio: `${this.reservationForm.horaInicio}:00`,
+      horaFin: `${this.reservationForm.horaFin}:00`
+    }).subscribe({
+      next: () => {
+        this.apiMessage.set('Reserva creada correctamente.');
+        this.loadReservations(user.id);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo crear la reserva.'));
+      }
+    });
   }
 
-  private calculateTooltipPosition(event: MouseEvent): { left: number; top: number } {
-    const tooltipWidth = 220;
-    const tooltipHeight = 190;
-
-    let left = event.clientX + 16;
-    let top = event.clientY + 16;
-
-    if (left + tooltipWidth > window.innerWidth - 8) {
-      left = event.clientX - tooltipWidth - 12;
+  protected iniciarSesionEntrenamiento(): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para iniciar un entrenamiento.');
+      return;
     }
 
-    if (top + tooltipHeight > window.innerHeight - 8) {
-      top = event.clientY - tooltipHeight - 12;
+    this.gymService.iniciarSesion({
+      idUsuario: user.id,
+      idRutina: this.sessionForm.idRutina || null,
+      notas: this.sessionForm.notas
+    }).subscribe({
+      next: (session) => {
+        this.currentSession.set(session);
+        this.apiMessage.set(`Sesion ${session.idSesion} iniciada.`);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo iniciar la sesion.'));
+      }
+    });
+  }
+
+  protected agregarDetalleSesion(): void {
+    const session = this.currentSession();
+    if (!session) {
+      this.apiMessage.set('No hay una sesion activa.');
+      return;
     }
 
-    return { left, top };
+    const payload: AgregarDetalleSesionPayload = {
+      idEjercicio: this.detailForm.idEjercicio,
+      idMaquina: this.detailForm.idMaquina || null,
+      idReserva: this.detailForm.idReserva || null,
+      seriesRealizadas: this.detailForm.seriesRealizadas,
+      repeticionesRealizadas: this.detailForm.repeticionesRealizadas,
+      pesoUsadoKg: this.detailForm.pesoUsadoKg,
+      duracionMinutos: this.detailForm.duracionMinutos,
+      esfuerzoPercibido: this.detailForm.esfuerzoPercibido,
+      notas: this.detailForm.notas
+    };
+
+    this.gymService.agregarDetalleSesion(session.idSesion, payload).subscribe({
+      next: (detail) => {
+        this.apiMessage.set(`Detalle agregado: ${detail.nombreEjercicio}.`);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo agregar el detalle de la sesion.'));
+      }
+    });
+  }
+
+  protected completarSesionActual(): void {
+    const session = this.currentSession();
+    const user = this.currentUser();
+    if (!session || !user) {
+      this.apiMessage.set('No hay sesion para completar.');
+      return;
+    }
+
+    const payload: CompletarSesionPayload = {
+      porcentajeCompletado: this.completeForm.porcentajeCompletado,
+      caloriasEstimadas: this.completeForm.caloriasEstimadas,
+      tiempoTotalMinutos: this.completeForm.tiempoTotalMinutos,
+      observacion: this.completeForm.observacion,
+      notas: this.completeForm.notas
+    };
+
+    this.gymService.completarSesion(session.idSesion, payload).subscribe({
+      next: () => {
+        this.currentSession.set(null);
+        this.apiMessage.set('Sesion completada correctamente.');
+        this.loadHistory(user.id);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo completar la sesion.'));
+      }
+    });
+  }
+
+  protected cargarHistorial(): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para ver el historial.');
+      return;
+    }
+
+    this.loadHistory(user.id);
+  }
+
+  private loadCatalogs(): void {
+    this.gymService.getMaquinas().subscribe({
+      next: (machines) => {
+        this.machines.set(machines);
+        if (!this.reservationForm.idMaquina && machines.length > 0) {
+          this.reservationForm.idMaquina = machines[0].idMaquina;
+        }
+      }
+    });
+
+    this.gymService.getEjercicios().subscribe({
+      next: (exercises) => {
+        this.exercises.set(exercises);
+        if (!this.detailForm.idEjercicio && exercises.length > 0) {
+          this.detailForm.idEjercicio = exercises[0].idEjercicio;
+        }
+      }
+    });
+  }
+
+  private loadPredefinedRoutines(): void {
+    this.gymService.getRutinasPredefinidas().subscribe({
+      next: (routines) => {
+        this.predefinedRoutines.set(routines);
+      }
+    });
+  }
+
+  private loadUserData(idUsuario: number): void {
+    this.loadUserRoutines(idUsuario);
+    this.loadReservations(idUsuario);
+    this.loadHistory(idUsuario);
+    this.gymService.getRecomendaciones(idUsuario).subscribe({
+      next: (routines) => this.recommendedRoutines.set(routines),
+      error: () => this.recommendedRoutines.set([])
+    });
+  }
+
+  private loadUserRoutines(idUsuario: number): void {
+    this.gymService.getRutinasUsuario(idUsuario).subscribe({
+      next: (routines) => {
+        this.userRoutines.set(routines.filter((routine) => routine.idUsuario === idUsuario));
+        if (!this.sessionForm.idRutina && routines.length > 0) {
+          this.sessionForm.idRutina = routines[0].idRutina;
+        }
+      }
+    });
+  }
+
+  private loadReservations(idUsuario: number): void {
+    this.gymService.getReservasUsuario(idUsuario).subscribe({
+      next: (reservations) => {
+        this.reservations.set(reservations);
+      }
+    });
+  }
+
+  private loadHistory(idUsuario: number): void {
+    this.gymService.getHistorial(idUsuario).subscribe({
+      next: (history) => {
+        this.workoutHistory.set(history);
+      }
+    });
+  }
+
+  private checkHealth(): void {
+    this.gymService.health().subscribe({
+      next: (response) => this.healthStatus.set(response.message),
+      error: () => this.healthStatus.set('Backend no disponible.')
+    });
+  }
+
+  private extractError(error: HttpErrorResponse, fallback: string): string {
+    if (typeof error.error === 'string') {
+      return error.error;
+    }
+
+    if (error.error?.title) {
+      return error.error.title;
+    }
+
+    if (error.error?.detail) {
+      return error.error.detail;
+    }
+
+    return fallback;
   }
 }

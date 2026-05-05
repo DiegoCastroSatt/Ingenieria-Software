@@ -15,13 +15,21 @@
         <div class="dropdown" [class.show]="menuOpen()">
           <a href="#top">Inicio</a>
           <a href="#rutinas">Rutinas</a>
-          <button type="button" (click)="abrirLogin()">Perfil</button>
+          <a href="#perfil">Perfil IMC</a>
+          <a href="#reservas">Reservas</a>
+          <a href="#sesiones">Sesiones</a>
           <div class="divider"></div>
-          <button type="button" class="danger">Cerrar sesion</button>
+          <button type="button" class="danger" (click)="cerrarSesion()">Cerrar sesion</button>
         </div>
       </div>
 
-      <button class="login-btn" type="button" (click)="abrirLogin()">Iniciar sesion</button>
+      @if (currentUser()) {
+        <button class="login-btn" type="button" (click)="cerrarSesion()">
+          {{ currentUser()!.nombre }}
+        </button>
+      } @else {
+        <button class="login-btn" type="button" (click)="abrirLogin()">Iniciar sesion</button>
+      }
     </div>
   </header>
 
@@ -32,20 +40,10 @@
       <p>Ingresa tus datos para continuar.</p>
 
       <label for="inputUsuario">Usuario o correo</label>
-      <input
-        id="inputUsuario"
-        type="text"
-        placeholder="ej: juanperez o juan@email.com"
-        [(ngModel)]="loginForm.nombre"
-      />
+      <input id="inputUsuario" type="text" placeholder="ej: juanperez o juan@email.com" [(ngModel)]="loginForm.nombre" />
 
       <label for="inputPass">Contrasena</label>
-      <input
-        id="inputPass"
-        type="password"
-        placeholder="Tu contrasena"
-        [(ngModel)]="loginForm.password"
-      />
+      <input id="inputPass" type="password" placeholder="Tu contrasena" [(ngModel)]="loginForm.password" />
 
       <div class="modal-footer">
         <button class="btn-primary" type="button" (click)="intentarLogin()" [disabled]="loginLoading()">
@@ -75,12 +73,7 @@
       <input id="regRut" type="text" placeholder="ej: 12345678-9" [(ngModel)]="registerForm.rut" />
 
       <label for="regCorreo">Correo electronico</label>
-      <input
-        id="regCorreo"
-        type="email"
-        placeholder="ej: juan@email.com"
-        [(ngModel)]="registerForm.correo"
-      />
+      <input id="regCorreo" type="email" placeholder="ej: juan@email.com" [(ngModel)]="registerForm.correo" />
 
       <label for="regPass">Contrasena</label>
       <input id="regPass" type="password" placeholder="Minimo 8 caracteres" [(ngModel)]="registerForm.password" />
@@ -116,22 +109,29 @@
       </div>
     </section>
 
+    <section class="status-panel">
+      <div><strong>Backend:</strong> {{ healthStatus() }}</div>
+      @if (apiMessage()) {
+        <div><strong>Ultima accion:</strong> {{ apiMessage() }}</div>
+      }
+    </section>
+
     <section class="stats">
       <div class="stat-card">
-        <div class="stat-num">12</div>
-        <div class="stat-label">Rutinas disponibles</div>
+        <div class="stat-num">{{ predefinedRoutines().length }}</div>
+        <div class="stat-label">Rutinas predefinidas</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num">847</div>
-        <div class="stat-label">Usuarios activos</div>
+        <div class="stat-num">{{ machines().length }}</div>
+        <div class="stat-label">Maquinas en catalogo</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num">4.9</div>
-        <div class="stat-label">Valoracion promedio</div>
+        <div class="stat-num">{{ reservations().length }}</div>
+        <div class="stat-label">Reservas del usuario</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num">24/7</div>
-        <div class="stat-label">Acceso a tu progreso</div>
+        <div class="stat-num">{{ workoutHistory().length }}</div>
+        <div class="stat-label">Sesiones registradas</div>
       </div>
     </section>
 
@@ -139,7 +139,7 @@
       <div class="today-header">
         <div>
           <div class="section-title section-title-compact">Entrenamiento de hoy</div>
-          <div class="section-sub">Pecho y triceps</div>
+          <div class="section-sub">Ejemplo visual del checklist diario.</div>
         </div>
         <span class="today-badge">Activo</span>
       </div>
@@ -147,20 +147,13 @@
       <div class="exercises">
         @for (exercise of todayExercises(); track exercise.name; let index = $index) {
           <div class="exercise-row">
-            <button
-              class="ex-check"
-              type="button"
-              [class.done]="exercise.done"
-              (click)="toggleExercise(index)"
-            >
+            <button class="ex-check" type="button" [class.done]="exercise.done" (click)="toggleExercise(index)">
               {{ exercise.done ? '✓' : '' }}
             </button>
-
             <div class="ex-info">
               <div class="ex-name">{{ exercise.name }}</div>
               <div class="ex-detail">{{ exercise.detail }}</div>
             </div>
-
             <div class="ex-sets">{{ exercise.sets }}</div>
           </div>
         }
@@ -168,62 +161,287 @@
     </section>
 
     <section id="rutinas">
-      <div class="section-title">Todas las rutinas</div>
-      <div class="section-sub">Haz clic en una rutina para ver los ejercicios incluidos.</div>
+      <div class="section-title">Rutinas predefinidas</div>
+      <div class="section-sub">Estas rutinas vienen del backend y pueden copiarse a una rutina personal.</div>
     </section>
 
     <section class="routines-grid">
-      @for (routine of routines(); track routine.name; let index = $index) {
+      @for (routine of predefinedRoutines(); track routine.idRutina; let index = $index) {
         <article class="routine-card">
-          <button class="routine-header" type="button" (click)="toggleRoutine(index)">
-            <div class="routine-icon" [style.background]="routine.accent">{{ routine.icon }}</div>
-
+          <button class="routine-header" type="button" (click)="toggleRoutine(index, routine.idRutina)">
+            <div class="routine-icon">{{ routine.tipoRutina.slice(0, 2).toUpperCase() }}</div>
             <div class="routine-info">
-              <div class="routine-name">{{ routine.name }}</div>
-              <div class="routine-desc">{{ routine.description }}</div>
+              <div class="routine-name">{{ routine.nombre }}</div>
+              <div class="routine-desc">{{ routine.descripcion }}</div>
             </div>
-
             <span class="routine-arrow" [class.open]="isRoutineOpen(index)">▶</span>
           </button>
 
           <div class="routine-body" [class.open]="isRoutineOpen(index)">
-            <ul>
-              @for (exercise of routine.exercises; track exercise.name) {
-                <li
-                  (mouseenter)="showTooltip($event, exercise)"
-                  (mousemove)="moveTooltip($event)"
-                  (mouseleave)="hideTooltip()"
-                >
-                  <div>
-                    <div class="exercise-list-name">{{ exercise.name }}</div>
-                    <div class="exercise-list-detail">{{ exercise.detail }}</div>
-                  </div>
-                </li>
-              }
-            </ul>
+            <div class="routine-meta">Objetivo: {{ routine.objetivo }} | Dificultad: {{ routine.dificultad }}</div>
+            <button class="btn-secondary compact-btn" type="button" (click)="copiarRutina(routine.idRutina)">
+              Copiar a mis rutinas
+            </button>
+
+            @if (getRoutineDetail(routine.idRutina); as detail) {
+              <ul>
+                @for (exercise of detail.ejercicios; track exercise.idRutinaEjercicio) {
+                  <li>
+                    <div>
+                      <div class="exercise-list-name">{{ exercise.nombreEjercicio }}</div>
+                      <div class="exercise-list-detail">
+                        {{ exercise.dia }} | series: {{ exercise.series ?? '-' }} | reps: {{ exercise.repeticiones ?? '-' }} | duracion: {{ exercise.duracionMinutos ?? '-' }} min
+                      </div>
+                    </div>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <div class="routine-meta">Cargando ejercicios...</div>
+            }
           </div>
         </article>
       }
     </section>
 
-    <section class="tips">
-      <div class="tips-title">Consejos de hoy</div>
-      <div class="tips-list">
-        <div class="tip">Hidratacion: bebe al menos 500 ml de agua antes de entrenar.</div>
-        <div class="tip">Calentamiento: dedica 10 minutos antes de tu rutina principal.</div>
-        <div class="tip">Descanso: respeta 48 horas de recuperacion por grupo muscular.</div>
-      </div>
+    <section id="perfil" class="dashboard-grid">
+      <article class="panel-card">
+        <div class="section-title">Perfil e IMC</div>
+        <div class="section-sub">Actualiza altura y peso para guardar historial IMC y obtener recomendaciones.</div>
+
+        <div class="form-grid">
+          <label>Fecha nacimiento</label>
+          <input type="date" [(ngModel)]="bmiForm.fechaNacimiento" />
+          <label>Sexo</label>
+          <select [(ngModel)]="bmiForm.sexo">
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+            <option value="otro">Otro</option>
+          </select>
+          <label>Altura (cm)</label>
+          <input type="number" [(ngModel)]="bmiForm.alturaCm" />
+          <label>Peso (kg)</label>
+          <input type="number" [(ngModel)]="bmiForm.pesoKg" />
+          <label>Objetivo</label>
+          <input type="text" [(ngModel)]="bmiForm.objetivo" />
+          <label>Nivel actividad</label>
+          <select [(ngModel)]="bmiForm.nivelActividad">
+            <option value="bajo">Bajo</option>
+            <option value="medio">Medio</option>
+            <option value="alto">Alto</option>
+          </select>
+        </div>
+
+        <button class="btn-primary compact-btn" type="button" (click)="guardarPerfilYCalcularImc()">
+          Guardar perfil y calcular IMC
+        </button>
+
+        @if (bmiResult(); as bmi) {
+          <div class="result-box">
+            <div><strong>IMC:</strong> {{ bmi.imc }}</div>
+            <div><strong>Categoria:</strong> {{ bmi.categoriaImc }}</div>
+            <div><strong>Objetivo actual:</strong> {{ bmi.perfil.objetivo || 'Sin definir' }}</div>
+          </div>
+        }
+      </article>
+
+      <article class="panel-card">
+        <div class="section-title">Rutinas recomendadas por IMC</div>
+        <div class="section-sub">La recomendacion orienta, pero no bloquea otras rutinas.</div>
+
+        @if (recommendedRoutines().length === 0) {
+          <div class="tip">Aun no hay recomendaciones cargadas para este usuario.</div>
+        } @else {
+          @for (routine of recommendedRoutines(); track routine.idRutina) {
+            <div class="list-card">
+              <div>
+                <div class="exercise-list-name">{{ routine.nombre }}</div>
+                <div class="exercise-list-detail">{{ routine.descripcion }}</div>
+              </div>
+              <button class="btn-secondary compact-btn" type="button" (click)="copiarRutina(routine.idRutina)">
+                Copiar
+              </button>
+            </div>
+          }
+        }
+      </article>
+    </section>
+
+    <section id="reservas" class="dashboard-grid">
+      <article class="panel-card">
+        <div class="section-title">Reservar maquina</div>
+        <div class="section-sub">La API valida traslapes y estados de mantencion.</div>
+
+        <label>Maquina</label>
+        <select [(ngModel)]="reservationForm.idMaquina">
+          @for (machine of machines(); track machine.idMaquina) {
+            <option [ngValue]="machine.idMaquina">{{ machine.nombre }} - {{ machine.estado }}</option>
+          }
+        </select>
+
+        <label>Fecha</label>
+        <input type="date" [(ngModel)]="reservationForm.fechaReserva" />
+
+        <div class="form-row">
+          <div>
+            <label>Hora inicio</label>
+            <input type="time" [(ngModel)]="reservationForm.horaInicio" />
+          </div>
+          <div>
+            <label>Hora fin</label>
+            <input type="time" [(ngModel)]="reservationForm.horaFin" />
+          </div>
+        </div>
+
+        <button class="btn-primary compact-btn" type="button" (click)="crearReserva()">Crear reserva</button>
+      </article>
+
+      <article class="panel-card">
+        <div class="section-title">Mis reservas</div>
+        <div class="section-sub">Se muestran las reservas activas y el historial reciente.</div>
+
+        @if (reservations().length === 0) {
+          <div class="tip">No hay reservas registradas.</div>
+        } @else {
+          @for (reservation of reservations(); track reservation.idReserva) {
+            <div class="list-card">
+              <div>
+                <div class="exercise-list-name">{{ reservation.nombreMaquina }}</div>
+                <div class="exercise-list-detail">
+                  {{ reservation.fechaReserva }} | {{ reservation.horaInicio }} - {{ reservation.horaFin }} | {{ reservation.estado }}
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </article>
+    </section>
+
+    <section id="sesiones" class="dashboard-grid">
+      <article class="panel-card">
+        <div class="section-title">Seguimiento de entrenamiento</div>
+        <div class="section-sub">Inicia una sesion, agrega ejercicios realizados y luego cierrala.</div>
+
+        @if (!currentSession()) {
+          <label>Rutina</label>
+          <select [(ngModel)]="sessionForm.idRutina">
+            <option [ngValue]="0">Sin rutina</option>
+            @for (routine of userRoutines(); track routine.idRutina) {
+              <option [ngValue]="routine.idRutina">{{ routine.nombre }}</option>
+            }
+          </select>
+
+          <label>Notas</label>
+          <input type="text" [(ngModel)]="sessionForm.notas" />
+
+          <button class="btn-primary compact-btn" type="button" (click)="iniciarSesionEntrenamiento()">
+            Iniciar sesion
+          </button>
+        } @else {
+          <div class="result-box">
+            <div><strong>Sesion activa:</strong> #{{ currentSession()!.idSesion }}</div>
+            <div><strong>Estado:</strong> {{ currentSession()!.estado }}</div>
+          </div>
+
+          <label>Ejercicio</label>
+          <select [(ngModel)]="detailForm.idEjercicio">
+            @for (exercise of exercises(); track exercise.idEjercicio) {
+              <option [ngValue]="exercise.idEjercicio">{{ exercise.nombre }}</option>
+            }
+          </select>
+
+          <label>Maquina</label>
+          <select [(ngModel)]="detailForm.idMaquina">
+            <option [ngValue]="0">Sin maquina</option>
+            @for (machine of machines(); track machine.idMaquina) {
+              <option [ngValue]="machine.idMaquina">{{ machine.nombre }}</option>
+            }
+          </select>
+
+          <div class="form-row">
+            <div>
+              <label>Series</label>
+              <input type="number" [(ngModel)]="detailForm.seriesRealizadas" />
+            </div>
+            <div>
+              <label>Repeticiones</label>
+              <input type="number" [(ngModel)]="detailForm.repeticionesRealizadas" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Peso (kg)</label>
+              <input type="number" [(ngModel)]="detailForm.pesoUsadoKg" />
+            </div>
+            <div>
+              <label>Duracion (min)</label>
+              <input type="number" [(ngModel)]="detailForm.duracionMinutos" />
+            </div>
+          </div>
+
+          <label>Esfuerzo percibido</label>
+          <input type="number" [(ngModel)]="detailForm.esfuerzoPercibido" />
+
+          <button class="btn-secondary compact-btn" type="button" (click)="agregarDetalleSesion()">
+            Agregar detalle
+          </button>
+
+          <hr />
+
+          <label>Porcentaje completado</label>
+          <input type="number" [(ngModel)]="completeForm.porcentajeCompletado" />
+
+          <div class="form-row">
+            <div>
+              <label>Calorias</label>
+              <input type="number" [(ngModel)]="completeForm.caloriasEstimadas" />
+            </div>
+            <div>
+              <label>Tiempo total</label>
+              <input type="number" [(ngModel)]="completeForm.tiempoTotalMinutos" />
+            </div>
+          </div>
+
+          <label>Observacion</label>
+          <input type="text" [(ngModel)]="completeForm.observacion" />
+
+          <button class="btn-primary compact-btn" type="button" (click)="completarSesionActual()">
+            Completar sesion
+          </button>
+        }
+      </article>
+
+      <article class="panel-card">
+        <div class="section-title">Historial de entrenamiento</div>
+        <div class="section-sub">Se consulta desde la base de datos con sesiones, detalles y progreso.</div>
+        <button class="btn-secondary compact-btn" type="button" (click)="cargarHistorial()">Recargar historial</button>
+
+        @if (workoutHistory().length === 0) {
+          <div class="tip">No hay sesiones registradas.</div>
+        } @else {
+          @for (entry of workoutHistory(); track entry.sesion.idSesion) {
+            <div class="history-card">
+              <div class="exercise-list-name">
+                Sesion #{{ entry.sesion.idSesion }} - {{ entry.rutina?.nombre || 'Libre' }}
+              </div>
+              <div class="exercise-list-detail">
+                {{ entry.sesion.fechaInicio }} | Estado: {{ entry.sesion.estado }} | Duracion: {{ entry.progreso?.tiempoTotalMinutos || '-' }} min
+              </div>
+
+              @for (detail of entry.detalles; track detail.idDetalle) {
+                <div class="history-detail">
+                  {{ detail.nombreEjercicio }} | series {{ detail.seriesRealizadas || '-' }} | reps {{ detail.repeticionesRealizadas || '-' }} | peso {{ detail.pesoUsadoKg || '-' }} kg
+                </div>
+              }
+            </div>
+          }
+        }
+      </article>
     </section>
   </main>
 
   <footer>
     <p>© 2026 GymApp. Todos los derechos reservados.</p>
   </footer>
-
-  @if (tooltip().visible) {
-    <div class="machine-tooltip visible" [style.left.px]="tooltip().left" [style.top.px]="tooltip().top">
-      <img [src]="tooltip().image" [alt]="tooltip().name" />
-      <span>{{ tooltip().name }}</span>
-    </div>
-  }
 </div>

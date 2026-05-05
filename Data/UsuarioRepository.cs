@@ -5,55 +5,49 @@ namespace Softawer.Data;
 
 public class UsuarioRepository(MySqlDataSource dataSource)
 {
-    public async Task<Usuario?> GetUsuarioAsync(int id)
+    public async Task<Usuario?> GetUsuarioAsync(int idUsuario)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT id, nombre, rut, correo, contrasena
+            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
             FROM usuarios
-            WHERE id = @id
+            WHERE id_usuario = @idUsuario
             LIMIT 1;
             """;
-        command.Parameters.AddWithValue("@id", id);
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
 
         await using var reader = await command.ExecuteReaderAsync();
         return await reader.ReadAsync() ? MapUsuario(reader) : null;
     }
 
-    public async Task<IReadOnlyList<Usuario>> ListUsuariosAsync()
-    {
-        var usuarios = new List<Usuario>();
-
-        await using var connection = await dataSource.OpenConnectionAsync();
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT id, nombre, rut, correo, contrasena
-            FROM usuarios
-            ORDER BY id;
-            """;
-
-        await using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
-        {
-            usuarios.Add(MapUsuario(reader));
-        }
-
-        return usuarios;
-    }
-
-    public async Task<Usuario?> AuthenticateAsync(string nombre, string password)
+    public async Task<Usuario?> GetByCorreoAsync(string correo)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT id, nombre, rut, correo, contrasena
+            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
             FROM usuarios
-            WHERE nombre = @nombre AND contrasena = @password
+            WHERE correo = @correo
             LIMIT 1;
             """;
-        command.Parameters.AddWithValue("@nombre", nombre);
-        command.Parameters.AddWithValue("@password", password);
+        command.Parameters.AddWithValue("@correo", correo);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        return await reader.ReadAsync() ? MapUsuario(reader) : null;
+    }
+
+    public async Task<Usuario?> GetByLoginIdentifierAsync(string identificador)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
+            FROM usuarios
+            WHERE nombre = @identificador OR correo = @identificador
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@identificador", identificador);
 
         await using var reader = await command.ExecuteReaderAsync();
         return await reader.ReadAsync() ? MapUsuario(reader) : null;
@@ -70,7 +64,6 @@ public class UsuarioRepository(MySqlDataSource dataSource)
             """;
         command.Parameters.AddWithValue("@correo", correo);
         command.Parameters.AddWithValue("@rut", rut);
-
         var count = Convert.ToInt32(await command.ExecuteScalarAsync());
         return count > 0;
     }
@@ -80,52 +73,32 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            INSERT INTO usuarios (nombre, rut, correo, contrasena)
-            VALUES (@nombre, @rut, @correo, @contrasena);
+            INSERT INTO usuarios (nombre, rut, correo, contrasena_hash, rol)
+            VALUES (@nombre, @rut, @correo, @contrasenaHash, @rol);
             """;
-        BindCommonParameters(command, usuario);
-
+        command.Parameters.AddWithValue("@nombre", usuario.Nombre);
+        command.Parameters.AddWithValue("@rut", usuario.Rut);
+        command.Parameters.AddWithValue("@correo", usuario.Correo);
+        command.Parameters.AddWithValue("@contrasenaHash", usuario.ContrasenaHash);
+        command.Parameters.AddWithValue("@rol", usuario.Rol);
         await command.ExecuteNonQueryAsync();
-        usuario.Id = Convert.ToInt32(command.LastInsertedId);
-        return usuario;
-    }
 
-    public async Task<bool> UpdateUsuarioAsync(Usuario usuario)
-    {
-        await using var connection = await dataSource.OpenConnectionAsync();
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-            UPDATE usuarios
-            SET nombre = @nombre,
-                rut = @rut,
-                correo = @correo,
-                contrasena = @contrasena
-            WHERE id = @id;
-            """;
-        BindCommonParameters(command, usuario);
-        command.Parameters.AddWithValue("@id", usuario.Id);
-
-        var affectedRows = await command.ExecuteNonQueryAsync();
-        return affectedRows > 0;
+        usuario.IdUsuario = Convert.ToInt32(command.LastInsertedId);
+        return (await GetUsuarioAsync(usuario.IdUsuario))!;
     }
 
     private static Usuario MapUsuario(MySqlDataReader reader)
     {
         return new Usuario
         {
-            Id = reader.GetInt32("id"),
+            IdUsuario = reader.GetInt32("id_usuario"),
             Nombre = reader.GetString("nombre"),
             Rut = reader.GetString("rut"),
             Correo = reader.GetString("correo"),
-            Contrasena = reader.GetString("contrasena")
+            ContrasenaHash = reader.GetString("contrasena_hash"),
+            Rol = reader.GetString("rol"),
+            FechaCreacion = reader.GetDateTime("fecha_creacion"),
+            FechaActualizacion = reader.GetDateTime("fecha_actualizacion")
         };
-    }
-
-    private static void BindCommonParameters(MySqlCommand command, Usuario usuario)
-    {
-        command.Parameters.AddWithValue("@nombre", usuario.Nombre);
-        command.Parameters.AddWithValue("@rut", usuario.Rut);
-        command.Parameters.AddWithValue("@correo", usuario.Correo);
-        command.Parameters.AddWithValue("@contrasena", usuario.Contrasena);
     }
 }

@@ -1,0 +1,145 @@
+using MySqlConnector;
+using Softawer.Models;
+
+namespace Softawer.Data;
+
+public class PerfilUsuarioRepository(MySqlDataSource dataSource)
+{
+    public async Task<PerfilUsuario?> GetPerfilAsync(int idUsuario)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id_perfil, id_usuario, fecha_nacimiento, sexo, altura_cm, peso_kg, objetivo, nivel_actividad, fecha_actualizacion
+            FROM perfil_usuario
+            WHERE id_usuario = @idUsuario
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        return await reader.ReadAsync() ? MapPerfil(reader) : null;
+    }
+
+    public async Task<PerfilUsuario> UpsertPerfilAsync(int idUsuario, ActualizarPerfilImcRequest request)
+    {
+        var existente = await GetPerfilAsync(idUsuario);
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+
+        if (existente is null)
+        {
+            command.CommandText = """
+                INSERT INTO perfil_usuario (id_usuario, fecha_nacimiento, sexo, altura_cm, peso_kg, objetivo, nivel_actividad)
+                VALUES (@idUsuario, @fechaNacimiento, @sexo, @alturaCm, @pesoKg, @objetivo, @nivelActividad);
+                """;
+        }
+        else
+        {
+            command.CommandText = """
+                UPDATE perfil_usuario
+                SET fecha_nacimiento = @fechaNacimiento,
+                    sexo = @sexo,
+                    altura_cm = @alturaCm,
+                    peso_kg = @pesoKg,
+                    objetivo = @objetivo,
+                    nivel_actividad = @nivelActividad
+                WHERE id_usuario = @idUsuario;
+                """;
+        }
+
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        command.Parameters.AddWithValue("@fechaNacimiento", request.FechaNacimiento?.ToDateTime(TimeOnly.MinValue));
+        command.Parameters.AddWithValue("@sexo", request.Sexo);
+        command.Parameters.AddWithValue("@alturaCm", request.AlturaCm);
+        command.Parameters.AddWithValue("@pesoKg", request.PesoKg);
+        command.Parameters.AddWithValue("@objetivo", request.Objetivo);
+        command.Parameters.AddWithValue("@nivelActividad", request.NivelActividad);
+        await command.ExecuteNonQueryAsync();
+
+        return (await GetPerfilAsync(idUsuario))!;
+    }
+
+    public async Task<HistorialImc> AddHistorialImcAsync(int idUsuario, decimal alturaCm, decimal pesoKg, decimal imc, string categoriaImc)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO historial_imc (id_usuario, altura_cm, peso_kg, imc, categoria_imc)
+            VALUES (@idUsuario, @alturaCm, @pesoKg, @imc, @categoriaImc);
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        command.Parameters.AddWithValue("@alturaCm", alturaCm);
+        command.Parameters.AddWithValue("@pesoKg", pesoKg);
+        command.Parameters.AddWithValue("@imc", imc);
+        command.Parameters.AddWithValue("@categoriaImc", categoriaImc);
+        await command.ExecuteNonQueryAsync();
+
+        var idImc = Convert.ToInt32(command.LastInsertedId);
+        return await GetHistorialImcAsync(idImc) ?? throw new InvalidOperationException("No se pudo leer el historial IMC insertado.");
+    }
+
+    public async Task<HistorialImc?> GetHistorialImcAsync(int idImc)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id_imc, id_usuario, altura_cm, peso_kg, imc, categoria_imc, fecha_registro
+            FROM historial_imc
+            WHERE id_imc = @idImc
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@idImc", idImc);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        return await reader.ReadAsync() ? MapImc(reader) : null;
+    }
+
+    public async Task<string?> GetCategoriaImcActualAsync(int idUsuario)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT categoria_imc
+            FROM historial_imc
+            WHERE id_usuario = @idUsuario
+            ORDER BY fecha_registro DESC
+            LIMIT 1;
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        return (string?)await command.ExecuteScalarAsync();
+    }
+
+    private static PerfilUsuario MapPerfil(MySqlDataReader reader)
+    {
+        return new PerfilUsuario
+        {
+            IdPerfil = reader.GetInt32("id_perfil"),
+            IdUsuario = reader.GetInt32("id_usuario"),
+            FechaNacimiento = reader.IsDBNull("fecha_nacimiento")
+                ? null
+                : DateOnly.FromDateTime(reader.GetDateTime("fecha_nacimiento")),
+            Sexo = reader.IsDBNull("sexo") ? null : reader.GetString("sexo"),
+            AlturaCm = reader.IsDBNull("altura_cm") ? null : reader.GetDecimal("altura_cm"),
+            PesoKg = reader.IsDBNull("peso_kg") ? null : reader.GetDecimal("peso_kg"),
+            Objetivo = reader.IsDBNull("objetivo") ? null : reader.GetString("objetivo"),
+            NivelActividad = reader.IsDBNull("nivel_actividad") ? null : reader.GetString("nivel_actividad"),
+            FechaActualizacion = reader.GetDateTime("fecha_actualizacion")
+        };
+    }
+
+    private static HistorialImc MapImc(MySqlDataReader reader)
+    {
+        return new HistorialImc
+        {
+            IdImc = reader.GetInt32("id_imc"),
+            IdUsuario = reader.GetInt32("id_usuario"),
+            AlturaCm = reader.GetDecimal("altura_cm"),
+            PesoKg = reader.GetDecimal("peso_kg"),
+            Imc = reader.GetDecimal("imc"),
+            CategoriaImc = reader.GetString("categoria_imc"),
+            FechaRegistro = reader.GetDateTime("fecha_registro")
+        };
+    }
+}
