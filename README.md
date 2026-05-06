@@ -10,3 +10,47 @@ Epics:
 2. Reserva de maquinas
 3. Gestión de usuarios
 4. Gestión de rutinas
+
+## Funcionalidades Principales
+
+### Autenticación y Gestión de Usuarios
+- Registro e inicio de sesión seguro de usuarios
+- Hash de contraseñas con encriptación segura
+- Gestión de perfiles de usuario
+- Control de datos personales y contacto
+
+### Perfil y Salud
+- Visualización y actualización del perfil del usuario
+- Cálculo automático del Índice de Masa Corporal (IMC)
+- Seguimiento de progreso personal
+- Registro de histórico de sesiones de entrenamiento
+
+### Catálogo de Máquinas
+- Visualización del catálogo de equipos disponibles en el gimnasio
+- Información detallada de cada máquina (nombre, descripción, área)
+
+### Reserva de Máquinas
+- Reserva de máquinas con disponibilidad de horarios
+- Visualización de máquinas disponibles
+- Cancelación de reservas
+- Políticas automáticas de reserva
+
+### Gestión de Rutinas
+- Crear rutinas personalizadas
+- Copiar rutinas existentes para reutilización
+- Asignación de máquinas a ejercicios en las rutinas
+- Seguimiento de rutinas activas
+
+### Sesiones de Entrenamiento
+- Registro de sesiones de entrenamiento completadas
+- Seguimiento de ejercicios realizados por sesión
+- Histórico de sesiones
+
+### Seguimiento de Progreso
+- Visualización del progreso del usuario a lo largo del tiempo
+- Métricas de desempeño en rutinas
+- Historial de sesiones completadas
+
+### Health Check
+- Verificación del estado de la aplicación y servicios
+- Monitoreo de conectividad con la base de datos
