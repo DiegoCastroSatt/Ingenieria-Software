@@ -154,7 +154,7 @@ public class SesionEntrenamientoRepository(MySqlDataSource dataSource)
                     },
                 Progreso = reader.IsDBNull("id_progreso")
                     ? null
-                    : new Progreso
+                    : new ProgresoSesion
                     {
                         IdProgreso = reader.GetInt32("id_progreso"),
                         IdUsuario = idUsuario,

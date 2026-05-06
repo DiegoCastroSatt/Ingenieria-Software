@@ -92,7 +92,7 @@ public class CopiarRutinaRequest
     public bool ActivarRutina { get; set; } = true;
 }
 
-public class UsuarioRutina
+public class UsuarioRutinaAsignada
 {
     public int IdUsuarioRutina { get; set; }
     public int IdUsuario { get; set; }

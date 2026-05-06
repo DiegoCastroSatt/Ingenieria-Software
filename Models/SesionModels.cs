@@ -29,7 +29,7 @@ public class DetalleSesionEntrenamiento
     public DateTime FechaCreacion { get; set; }
 }
 
-public class Progreso
+public class ProgresoSesion
 {
     public int IdProgreso { get; set; }
     public int IdUsuario { get; set; }
@@ -74,6 +74,6 @@ public class SesionHistorialResponse
 {
     public SesionEntrenamiento Sesion { get; set; } = new();
     public RutinaResumenResponse? Rutina { get; set; }
-    public Progreso? Progreso { get; set; }
+    public ProgresoSesion? Progreso { get; set; }
     public List<DetalleSesionEntrenamiento> Detalles { get; set; } = [];
 }
