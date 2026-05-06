@@ -11,7 +11,7 @@ Epics:
 3. Gestión de usuarios
 4. Gestión de rutinas
 
-## Funcionalidades Principales
+## Funcionalidades que tiene o que tendrá la aplicación:
 
 ### Autenticación y Gestión de Usuarios
 - Registro e inicio de sesión seguro de usuarios
