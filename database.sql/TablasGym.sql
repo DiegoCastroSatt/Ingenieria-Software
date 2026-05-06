@@ -77,7 +77,7 @@ CREATE TABLE rutinas (
     id_usuario INT NULL,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT NOT NULL,
-    tipo_rutina ENUM('predefinida', 'personalizada', 'copiada') NOT NULL,
+    tipo_rutina ENUM('catalogo', 'personalizada', 'copiada') NOT NULL,
     objetivo VARCHAR(100) NOT NULL,
     categoria_imc ENUM('bajo_peso', 'normal', 'sobrepeso', 'obesidad') NULL,
     dificultad VARCHAR(50) NOT NULL,
@@ -207,6 +207,7 @@ CREATE TABLE progreso (
     FOREIGN KEY (id_rutina) REFERENCES rutinas(id_rutina)
 );
 
+-- tipos de maquina
 INSERT INTO tipos_maquina (nombre) VALUES
 ('Piernas'),
 ('Biceps'),
@@ -217,6 +218,7 @@ INSERT INTO tipos_maquina (nombre) VALUES
 ('Cardio'),
 ('Core');
 
+-- maquinas
 INSERT INTO maquinas (id_tipo_maquina, nombre, descripcion, ubicacion, estado, cantidad) VALUES
 (1, 'Prensa 45', 'Prensa inclinada para tren inferior', 'Sala A', 'disponible', 2),
 (1, 'Extension de cuadriceps', 'Maquina de aislamiento para cuadriceps', 'Sala A', 'disponible', 1),
@@ -229,36 +231,40 @@ INSERT INTO maquinas (id_tipo_maquina, nombre, descripcion, ubicacion, estado, c
 (7, 'Bicicleta estatica', 'Cardio de bajo impacto', 'Sala D', 'disponible', 4),
 (8, 'Banco abdominal', 'Trabajo de core y estabilidad', 'Sala E', 'disponible', 2);
 
--- Las contrasenas ya estan hasheadas con PBKDF2 para este seed.
--- En produccion no deben almacenarse contrasenas en texto plano.
+-- usuarios
 INSERT INTO usuarios (nombre, rut, correo, contrasena_hash, rol) VALUES
-('Juan Perez', '19092112-1', 'juan@mail.com', 'PBKDF2$100000$2fyU5pHeuafkdfRUZwMr9Q==$Nt7xFu1uRnururxutJoWiaBCtBnPlQ1K393AWLEj3Y0=', 'usuario'),
-('Maria Lopez', '22333444-5', 'maria@mail.com', 'PBKDF2$100000$2fyU5pHeuafkdfRUZwMr9Q==$Nt7xFu1uRnururxutJoWiaBCtBnPlQ1K393AWLEj3Y0=', 'usuario'),
-('Carlos Soto', '90109078-6', 'carlos@mail.com', 'PBKDF2$100000$2fyU5pHeuafkdfRUZwMr9Q==$Nt7xFu1uRnururxutJoWiaBCtBnPlQ1K393AWLEj3Y0=', 'entrenador'),
-('Admin Gym', '11111111-1', 'admin@gym.com', 'PBKDF2$100000$2fyU5pHeuafkdfRUZwMr9Q==$Nt7xFu1uRnururxutJoWiaBCtBnPlQ1K393AWLEj3Y0=', 'admin');
+('Juan Perez', '19092112-1', 'juan@mail.com', 'PBKDF2$100000$xxx$xxx', 'usuario'),
+('Maria Lopez', '22333444-5', 'maria@mail.com', 'PBKDF2$100000$xxx$xxx', 'usuario'),
+('Carlos Soto', '90109078-6', 'carlos@mail.com', 'PBKDF2$100000$xxx$xxx', 'entrenador'),
+('Admin Gym', '11111111-1', 'admin@gym.com', 'PBKDF2$100000$xxx$xxx', 'admin');
 
+-- perfil usuario
 INSERT INTO perfil_usuario (id_usuario, fecha_nacimiento, sexo, altura_cm, peso_kg, objetivo, nivel_actividad) VALUES
 (1, '1998-06-10', 'masculino', 175.00, 78.00, 'ganar_fuerza', 'medio'),
 (2, '2000-02-21', 'femenino', 162.00, 69.50, 'bajar_grasa', 'medio'),
 (3, '1997-11-30', 'masculino', 180.00, 72.00, 'mantener', 'alto');
 
+-- historial imc
 INSERT INTO historial_imc (id_usuario, altura_cm, peso_kg, imc, categoria_imc, fecha_registro) VALUES
 (1, 175.00, 78.00, 25.47, 'sobrepeso', '2026-04-10 09:00:00'),
 (1, 175.00, 76.50, 24.98, 'normal', '2026-04-24 09:00:00'),
 (2, 162.00, 69.50, 26.48, 'sobrepeso', '2026-04-10 09:00:00'),
 (3, 180.00, 72.00, 22.22, 'normal', '2026-04-10 09:00:00');
 
+-- rutinas 
+-- rutinas 
 INSERT INTO rutinas (id_usuario, nombre, descripcion, tipo_rutina, objetivo, categoria_imc, dificultad, es_publica, id_rutina_origen) VALUES
-(NULL, 'Fuerza principiante', 'Rutina inicial enfocada en movimientos basicos de fuerza.', 'predefinida', 'ganar_fuerza', 'normal', 'principiante', TRUE, NULL),
-(NULL, 'Hipertrofia principiante', 'Rutina inicial enfocada en volumen y tecnica.', 'predefinida', 'ganar_musculo', 'normal', 'principiante', TRUE, NULL),
-(NULL, 'Cardio inicial', 'Rutina base para mejorar resistencia cardiovascular.', 'predefinida', 'mejorar_resistencia', 'normal', 'principiante', TRUE, NULL),
-(NULL, 'Full Body principiante', 'Rutina global para todo el cuerpo en nivel inicial.', 'predefinida', 'acondicionamiento', 'normal', 'principiante', TRUE, NULL),
-(NULL, 'Piernas principiante', 'Rutina de tren inferior con enfoque tecnico.', 'predefinida', 'fortalecer_piernas', 'normal', 'principiante', TRUE, NULL),
-(NULL, 'Rutina bajo impacto', 'Rutina suave enfocada en movilidad y cardio controlado.', 'predefinida', 'bajar_grasa', 'sobrepeso', 'principiante', TRUE, NULL),
-(NULL, 'Rutina fuerza basica', 'Rutina de fuerza general para usuarios con IMC normal.', 'predefinida', 'ganar_fuerza', 'normal', 'principiante', TRUE, NULL),
-(NULL, 'Rutina acondicionamiento inicial', 'Rutina de adaptacion progresiva para usuarios con bajo peso o normal.', 'predefinida', 'acondicionamiento', 'bajo_peso', 'principiante', TRUE, NULL),
-(1, 'Mi rutina de Juan', 'Rutina personalizada creada por el usuario.', 'personalizada', 'ganar_fuerza', NULL, 'intermedio', FALSE, NULL);
+(NULL, 'Fuerza principiante', 'Rutina inicial de fuerza', 'catalogo', 'ganar_fuerza', 'normal', 'principiante', TRUE, NULL),
+(NULL, 'Hipertrofia principiante', 'Rutina de volumen', 'catalogo', 'ganar_musculo', 'normal', 'principiante', TRUE, NULL),
+(NULL, 'Cardio inicial', 'Rutina cardio', 'catalogo', 'mejorar_resistencia', 'normal', 'principiante', TRUE, NULL),
+(NULL, 'Full Body principiante', 'Rutina completa', 'catalogo', 'acondicionamiento', 'normal', 'principiante', TRUE, NULL),
+(NULL, 'Piernas principiante', 'Rutina tren inferior', 'catalogo', 'fortalecer_piernas', 'normal', 'principiante', TRUE, NULL),
+(NULL, 'Rutina bajo impacto', 'Rutina suave', 'catalogo', 'bajar_grasa', 'sobrepeso', 'principiante', TRUE, NULL),
+(NULL, 'Rutina fuerza basica', 'Rutina general', 'catalogo', 'ganar_fuerza', 'normal', 'principiante', TRUE, NULL),
+(NULL, 'Rutina acondicionamiento', 'Adaptacion inicial', 'catalogo', 'acondicionamiento', 'bajo_peso', 'principiante', TRUE, NULL),
+(1, 'Mi rutina de Juan', 'Rutina personalizada', 'personalizada', 'ganar_fuerza', NULL, 'intermedio', FALSE, NULL);
 
+-- ejercicios
 INSERT INTO ejercicios (nombre, descripcion, grupo_muscular, dificultad, id_maquina) VALUES
 ('Prensa de piernas', 'Empuje controlado para cuadriceps y gluteos.', 'piernas', 'principiante', 1),
 ('Extension de cuadriceps', 'Aislamiento de cuadriceps.', 'piernas', 'principiante', 2),
