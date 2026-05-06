@@ -10,7 +10,7 @@ public class RutinaRepository(MySqlDataSource dataSource)
         return await ListRutinasAsync("""
             SELECT id_rutina, id_usuario, nombre, descripcion, tipo_rutina, objetivo, categoria_imc, dificultad, es_publica, id_rutina_origen
             FROM rutinas
-            WHERE tipo_rutina = 'predefinida' AND es_publica = TRUE
+            WHERE tipo_rutina = 'catalogo' AND es_publica = TRUE
             ORDER BY nombre;
             """);
     }
@@ -20,7 +20,7 @@ public class RutinaRepository(MySqlDataSource dataSource)
         return await ListRutinasAsync("""
             SELECT id_rutina, id_usuario, nombre, descripcion, tipo_rutina, objetivo, categoria_imc, dificultad, es_publica, id_rutina_origen
             FROM rutinas
-            WHERE tipo_rutina = 'predefinida'
+            WHERE tipo_rutina = 'catalogo'
               AND es_publica = TRUE
               AND categoria_imc = @categoriaImc
             ORDER BY nombre;
@@ -32,7 +32,7 @@ public class RutinaRepository(MySqlDataSource dataSource)
         return await ListRutinasAsync("""
             SELECT id_rutina, id_usuario, nombre, descripcion, tipo_rutina, objetivo, categoria_imc, dificultad, es_publica, id_rutina_origen
             FROM rutinas
-            WHERE id_usuario = @idUsuario OR (id_usuario IS NULL AND tipo_rutina = 'predefinida' AND es_publica = TRUE)
+            WHERE id_usuario = @idUsuario OR (id_usuario IS NULL AND tipo_rutina = 'catalogo' AND es_publica = TRUE)
             ORDER BY nombre;
             """, command => command.Parameters.AddWithValue("@idUsuario", idUsuario));
     }
