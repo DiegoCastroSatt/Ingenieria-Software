@@ -262,6 +262,8 @@ INSERT INTO rutinas (id_usuario, nombre, descripcion, tipo_rutina, objetivo, cat
 (NULL, 'Rutina bajo impacto', 'Rutina suave', 'catalogo', 'bajar_grasa', 'sobrepeso', 'principiante', TRUE, NULL),
 (NULL, 'Rutina fuerza basica', 'Rutina general', 'catalogo', 'ganar_fuerza', 'normal', 'principiante', TRUE, NULL),
 (NULL, 'Rutina acondicionamiento', 'Adaptacion inicial', 'catalogo', 'acondicionamiento', 'bajo_peso', 'principiante', TRUE, NULL),
+(NULL, 'Fuerza', 'Rutina de fuerza intermedia', 'catalogo', 'ganar_fuerza', 'normal', 'intermedio', TRUE, NULL),
+(NULL, 'Hipertrofia', 'Rutina de hipertrofia intermedia', 'catalogo', 'ganar_musculo', 'normal', 'intermedio', TRUE, NULL),
 (1, 'Mi rutina de Juan', 'Rutina personalizada', 'personalizada', 'ganar_fuerza', NULL, 'intermedio', FALSE, NULL);
 
 -- ejercicios
@@ -306,7 +308,17 @@ INSERT INTO rutina_ejercicio (id_rutina, id_ejercicio, dia, orden, series, repet
 (8, 9, 'Lunes', 1, NULL, NULL, 15, 0, 'Cardio adaptativo'),
 (8, 10, 'Lunes', 2, 3, 20, NULL, 30, 'Core basico'),
 (9, 1, 'Martes', 1, 4, 8, NULL, 90, 'Carga progresiva'),
-(9, 5, 'Jueves', 1, 3, 10, NULL, 75, 'Estabilidad escapular');
+(9, 5, 'Jueves', 1, 3, 10, NULL, 75, 'Estabilidad escapular'),
+(10, 7, 'Lunes', 1, 5, 6, NULL, 120, 'Enfocar tecnica y tension'),
+(10, 6, 'Lunes', 2, 5, 6, NULL, 120, 'Espalda firme'),
+(10, 1, 'Miercoles', 1, 4, 10, NULL, 90, 'Mantener control'),
+(10, 5, 'Jueves', 1, 4, 8, NULL, 90, 'Pulsos controlados'),
+(10, 3, 'Viernes', 1, 4, 10, NULL, 90, 'Subida explosiva'),
+(11, 7, 'Lunes', 1, 4, 12, NULL, 75, 'Pectoral completo'),
+(11, 5, 'Lunes', 2, 4, 10, NULL, 75, 'Hombros definidos'),
+(11, 6, 'Miercoles', 1, 4, 12, NULL, 75, 'Dorsal ancho'),
+(11, 1, 'Jueves', 1, 4, 12, NULL, 90, 'Cuadriceps cargados'),
+(11, 2, 'Sabado', 1, 3, 15, NULL, 60, 'Aislar cuadriceps');
 
 INSERT INTO usuario_rutina (id_usuario, id_rutina, estado, fecha_asignacion) VALUES
 (1, 1, 'activa', '2026-04-10 08:00:00'),
