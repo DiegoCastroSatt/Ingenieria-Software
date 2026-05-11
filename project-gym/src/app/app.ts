@@ -97,7 +97,7 @@ export class App implements OnInit {
     { 
       name: 'Press de hombro', 
       image: 'press hombro con palanca.jpeg',
-      category: 'Fuerza',
+      category: 'Fuerza, e Hipertrofia',
       purpose: 'Fuerza de hombros',
       description: 'Trabaja deltoides y parte superior del cuerpo'
     },
@@ -111,7 +111,7 @@ export class App implements OnInit {
     { 
       name: 'Prensa de piernas', 
       image: 'prensa piernas.jpeg',
-      category: 'Fuerza',
+      category: 'Fuerza e Hipertrofia',
       purpose: 'Fuerza de piernas',
       description: 'Trabaja cuadríceps, glúteos y aductores'
     },
@@ -125,7 +125,7 @@ export class App implements OnInit {
     { 
       name: 'Remo sentado', 
       image: 'remo sentado.jpeg',
-      category: 'Fuerza',
+      category: 'Fuerza e Hipertrofia',
       purpose: 'Fuerza de espalda',
       description: 'Trabaja dorsales, romboides y parte media de la espalda'
     }
@@ -164,9 +164,9 @@ export class App implements OnInit {
       description: 'Trabaja core, espalda baja y estabilización del cuerpo'
     },
     { 
-      name: 'Cuadríceps (estiramiento)', 
+      name: 'Cuadríceps', 
       image: 'cuadriceps.png',
-      category: 'Flexibilidad',
+      category: 'Hipertrofia y Flexibilidad',
       purpose: 'Flexibilidad de piernas',
       description: 'Estira y mejora la movilidad del cuadríceps'
     }
