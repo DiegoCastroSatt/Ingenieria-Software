@@ -26,6 +26,14 @@ type DailyExercise = {
   done: boolean;
 };
 
+type ExerciseWithImage = {
+  name: string;
+  image: string;
+  category: string;
+  purpose: string;
+  description: string;
+};
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -60,6 +68,188 @@ export class App implements OnInit {
   protected readonly reservations = signal<Reserva[]>([]);
   protected readonly currentSession = signal<SesionEntrenamiento | null>(null);
   protected readonly workoutHistory = signal<SesionHistorial[]>([]);
+
+  protected readonly catalogCardio = signal<ExerciseWithImage[]>([
+    { 
+      name: 'Trote en cinta', 
+      image: 'caminadora.png',
+      category: 'Cardio',
+      purpose: 'Resistencia cardiovascular',
+      description: 'Mejora la capacidad aeróbica y la salud del corazón'
+    },
+    { 
+      name: 'Bicicleta estática', 
+      image: 'Bici.png',
+      category: 'Cardio',
+      purpose: 'Resistencia cardiovascular',
+      description: 'Cardio de bajo impacto, ideal para articulaciones'
+    },
+    {
+      name: 'Elíptica',
+      image: 'eliptica.png',
+      category: 'Cardio',
+      purpose: 'Resistencia cardiovascular',
+      description: 'Ejercicio de bajo impacto que trabaja todo el cuerpo'
+    }
+  ]);
+
+  protected readonly catalogFuerza = signal<ExerciseWithImage[]>([
+    { 
+      name: 'Press de hombro', 
+      image: 'press hombro con palanca.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de hombros',
+      description: 'Trabaja deltoides y parte superior del cuerpo'
+    },
+    { 
+      name: 'Curl de bíceps', 
+      image: 'curl biceps.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de brazos',
+      description: 'Fortalece bíceps y flexores de codo'
+    },
+    { 
+      name: 'Prensa de piernas', 
+      image: 'prensa piernas.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de piernas',
+      description: 'Trabaja cuadríceps, glúteos y aductores'
+    },
+    { 
+      name: 'Press de pecho', 
+      image: 'press pecho.png',
+      category: 'Fuerza',
+      purpose: 'Fuerza de pecho',
+      description: 'Fortalece pectorales, hombros y tríceps'
+    },
+    { 
+      name: 'Remo sentado', 
+      image: 'remo sentado.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de espalda',
+      description: 'Trabaja dorsales, romboides y parte media de la espalda'
+    }
+  ]);
+
+  protected readonly catalogHipertrofia = signal<ExerciseWithImage[]>([
+    { 
+      name: 'Press de hombro', 
+      image: 'press hombro con palanca.jpeg',
+      category: 'Hipertrofia',
+      purpose: 'Ganancia muscular de hombros',
+      description: 'Genera micro-ruptura en fibras musculares del hombro'
+    },
+    { 
+      name: 'Curl de bíceps', 
+      image: 'curl biceps.jpeg',
+      category: 'Hipertrofia',
+      purpose: 'Ganancia muscular de brazos',
+      description: 'Aislamiento efectivo para el crecimiento del bíceps'
+    },
+    { 
+      name: 'Sentadilla', 
+      image: 'sentadilla.jpeg',
+      category: 'Hipertrofia',
+      purpose: 'Ganancia muscular de piernas',
+      description: 'Ejercicio compuesto para crecimiento de cuadríceps y glúteos'
+    }
+  ]);
+
+  protected readonly catalogFlexibilidad = signal<ExerciseWithImage[]>([
+    { 
+      name: 'Plancha frontal', 
+      image: 'plancha.png',
+      category: 'Flexibilidad/Core',
+      purpose: 'Fortalecimiento abdominal',
+      description: 'Trabaja core, espalda baja y estabilización del cuerpo'
+    },
+    { 
+      name: 'Cuadríceps (estiramiento)', 
+      image: 'cuadriceps.png',
+      category: 'Flexibilidad',
+      purpose: 'Flexibilidad de piernas',
+      description: 'Estira y mejora la movilidad del cuadríceps'
+    }
+  ]);
+
+  protected readonly allExercises = signal<ExerciseWithImage[]>([
+    // Cardio
+    { 
+      name: 'Trote en cinta', 
+      image: 'cardio.png',
+      category: 'Cardio',
+      purpose: 'Resistencia cardiovascular',
+      description: 'Mejora la capacidad aeróbica y la salud del corazón'
+    },
+    { 
+      name: 'Bicicleta estática', 
+      image: 'cardio.png',
+      category: 'Cardio',
+      purpose: 'Resistencia cardiovascular',
+      description: 'Cardio de bajo impacto, ideal para articulaciones'
+    },
+    // Fuerza
+    { 
+      name: 'Press de hombro', 
+      image: 'press hombro con palanca.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de hombros',
+      description: 'Trabaja deltoides y parte superior del cuerpo'
+    },
+    { 
+      name: 'Curl de bíceps', 
+      image: 'curl biceps.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de brazos',
+      description: 'Fortalece bíceps y flexores de codo'
+    },
+    { 
+      name: 'Prensa de piernas', 
+      image: 'prensa piernas.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de piernas',
+      description: 'Trabaja cuadríceps, glúteos y aductores'
+    },
+    { 
+      name: 'Press de pecho', 
+      image: 'press pecho.png',
+      category: 'Fuerza',
+      purpose: 'Fuerza de pecho',
+      description: 'Fortalece pectorales, hombros y tríceps'
+    },
+    { 
+      name: 'Remo sentado', 
+      image: 'remo sentado.jpeg',
+      category: 'Fuerza',
+      purpose: 'Fuerza de espalda',
+      description: 'Trabaja dorsales, romboides y parte media de la espalda'
+    },
+    // Hipertrofia
+    { 
+      name: 'Sentadilla', 
+      image: 'sentadilla.jpeg',
+      category: 'Hipertrofia',
+      purpose: 'Ganancia muscular de piernas',
+      description: 'Ejercicio compuesto para crecimiento de cuadríceps y glúteos'
+    },
+    // Flexibilidad/Core
+    { 
+      name: 'Plancha frontal', 
+      image: 'plancha.jpeg',
+      category: 'Flexibilidad/Core',
+      purpose: 'Fortalecimiento abdominal',
+      description: 'Trabaja core, espalda baja y estabilización del cuerpo'
+    },
+    { 
+      name: 'Cuadríceps (estiramiento)', 
+      image: 'cuadriceps.jpeg',
+      category: 'Flexibilidad',
+      purpose: 'Flexibilidad de piernas',
+      description: 'Estira y mejora la movilidad del cuadríceps'
+    }
+  ]);
+
+  protected readonly selectedExerciseImage = signal<string | null>(null);
 
   protected readonly todayExercises = signal<DailyExercise[]>([
     { name: 'Press de pecho', detail: 'Maquina', sets: '4 x 12', done: true },
@@ -199,6 +389,21 @@ export class App implements OnInit {
         itemIndex === index ? { ...item, done: !item.done } : item
       )
     );
+  }
+
+  protected showExerciseImage(imagePath: string): void {
+    this.selectedExerciseImage.set(imagePath);
+  }
+
+  protected hideExerciseImage(): void {
+    this.selectedExerciseImage.set(null);
+  }
+
+  protected getSelectedExerciseInfo(): ExerciseWithImage | null {
+    if (!this.selectedExerciseImage()) return null;
+    
+    const currentImage = this.selectedExerciseImage();
+    return this.allExercises().find(ex => ex.image === currentImage) ?? null;
   }
 
   protected abrirLogin(): void {
