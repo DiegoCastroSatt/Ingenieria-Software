@@ -14,6 +14,7 @@
 
         <div class="dropdown" [class.show]="menuOpen()">
           <a href="#top">Inicio</a>
+          <a href="#catalogo">Catálogo de ejercicios</a>
           <a href="#rutinas">Rutinas</a>
           <a href="#perfil">Perfil IMC</a>
           <a href="#reservas">Reservas</a>
@@ -202,6 +203,94 @@
           </div>
         </article>
       }
+    </section>
+
+    <section id="catalogo" class="catalog-section">
+      <div class="section-title">Catálogo de ejercicios</div>
+      <div class="section-sub">Pasa el cursor sobre un ejercicio para ver su imagen, categoría y propósito.</div>
+
+      <div class="catalog-grid">
+        <div class="catalog-exercises-wrapper">
+          <div class="catalog-column">
+            <h3 class="catalog-category">🏃 Cardio</h3>
+            <div class="exercises-list">
+              @for (exercise of catalogCardio(); track exercise.name) {
+                <div class="exercise-card" (mouseenter)="showExerciseImage(exercise.image)" (mouseleave)="hideExerciseImage()">
+                  <div class="exercise-name">{{ exercise.name }}</div>
+                  <div class="exercise-purpose">{{ exercise.purpose }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="catalog-column">
+            <h3 class="catalog-category">💪 Fuerza</h3>
+            <div class="exercises-list">
+              @for (exercise of catalogFuerza(); track exercise.name) {
+                <div class="exercise-card" (mouseenter)="showExerciseImage(exercise.image)" (mouseleave)="hideExerciseImage()">
+                  <div class="exercise-name">{{ exercise.name }}</div>
+                  <div class="exercise-purpose">{{ exercise.purpose }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="catalog-column">
+            <h3 class="catalog-category">🔥 Hipertrofia</h3>
+            <div class="exercises-list">
+              @for (exercise of catalogHipertrofia(); track exercise.name) {
+                <div class="exercise-card" (mouseenter)="showExerciseImage(exercise.image)" (mouseleave)="hideExerciseImage()">
+                  <div class="exercise-name">{{ exercise.name }}</div>
+                  <div class="exercise-purpose">{{ exercise.purpose }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="catalog-column">
+            <h3 class="catalog-category">🧘 Flexibilidad/Core</h3>
+            <div class="exercises-list">
+              @for (exercise of catalogFlexibilidad(); track exercise.name) {
+                <div class="exercise-card" (mouseenter)="showExerciseImage(exercise.image)" (mouseleave)="hideExerciseImage()">
+                  <div class="exercise-name">{{ exercise.name }}</div>
+                  <div class="exercise-purpose">{{ exercise.purpose }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <h3 class="catalog-category"> Información del ejercicio</h3>
+          @if (selectedExerciseImage()) {
+            <div class="preview-content">
+              <div class="exercise-image-container">
+                <img [src]="selectedExerciseImage()" [alt]="selectedExerciseImage()" class="exercise-image" />
+              </div>
+              @if (getSelectedExerciseInfo(); as info) {
+                <div class="exercise-info-panel">
+                  <div class="info-row">
+                    <strong>Ejercicio:</strong> {{ info.name }}
+                  </div>
+                  <div class="info-row">
+                    <strong>Categoría:</strong> {{ info.category }}
+                  </div>
+                  <div class="info-row">
+                    <strong>Propósito:</strong> {{ info.purpose }}
+                  </div>
+                  <div class="info-row">
+                    <strong>Descripción:</strong> {{ info.description }}
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="exercise-image-placeholder">
+              Pasa el cursor sobre un ejercicio para ver su información completa
+            </div>
+          }
+        </div>
+      </div>
     </section>
 
     <section id="perfil" class="dashboard-grid">
