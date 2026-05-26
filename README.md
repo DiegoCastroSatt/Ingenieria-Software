@@ -54,3 +54,12 @@ Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cli
 ### Health Check
 - Verificación del estado de la aplicación y servicios
 - Monitoreo de conectividad con la base de datos
+
+## Historias de Usuario
+Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
+
+Como administrador, quiero poder monitorear la conectividad con la base de datos.
+
+Como usuario, quiero poder acceder a mis metricas de desempeño.
+
+Como usuario, quiero poder tener control de mis datos personales y contacto.
