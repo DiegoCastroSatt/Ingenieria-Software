@@ -63,3 +63,5 @@ Como administrador, quiero poder monitorear la conectividad con la base de datos
 Como usuario, quiero poder acceder a mis metricas de desempeño.
 
 Como usuario, quiero poder tener control de mis datos personales y contacto.
+
+Como usuario, quiero añadir maquinas a "favoritos" para ahorrar tiempo al realizar reservas.
