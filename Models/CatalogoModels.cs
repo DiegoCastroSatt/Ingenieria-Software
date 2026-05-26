@@ -7,6 +7,8 @@ public class Maquina
     public string TipoMaquina { get; set; } = string.Empty;
     public string Nombre { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
+    public string MusculosObjetivo { get; set; } = string.Empty;
+    public string ImagenUrl { get; set; } = string.Empty;
     public string Ubicacion { get; set; } = string.Empty;
     public string Estado { get; set; } = string.Empty;
     public int Cantidad { get; set; }

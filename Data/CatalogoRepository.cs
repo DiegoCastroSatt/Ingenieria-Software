@@ -11,7 +11,8 @@ public class CatalogoRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT m.id_maquina, m.id_tipo_maquina, tm.nombre AS tipo_maquina, m.nombre, m.descripcion, m.ubicacion, m.estado, m.cantidad
+            SELECT m.id_maquina, m.id_tipo_maquina, tm.nombre AS tipo_maquina, m.nombre, m.descripcion,
+                   m.musculos_objetivo, m.imagen_url, m.ubicacion, m.estado, m.cantidad
             FROM maquinas m
             INNER JOIN tipos_maquina tm ON tm.id_tipo_maquina = m.id_tipo_maquina
             ORDER BY tm.nombre, m.nombre;
@@ -26,6 +27,8 @@ public class CatalogoRepository(MySqlDataSource dataSource)
                 TipoMaquina = reader.GetString("tipo_maquina"),
                 Nombre = reader.GetString("nombre"),
                 Descripcion = reader.GetString("descripcion"),
+                MusculosObjetivo = reader.GetString("musculos_objetivo"),
+                ImagenUrl = reader.GetString("imagen_url"),
                 Ubicacion = reader.GetString("ubicacion"),
                 Estado = reader.GetString("estado"),
                 Cantidad = reader.GetInt32("cantidad")
@@ -40,7 +43,8 @@ public class CatalogoRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT m.id_maquina, m.id_tipo_maquina, tm.nombre AS tipo_maquina, m.nombre, m.descripcion, m.ubicacion, m.estado, m.cantidad
+            SELECT m.id_maquina, m.id_tipo_maquina, tm.nombre AS tipo_maquina, m.nombre, m.descripcion,
+                   m.musculos_objetivo, m.imagen_url, m.ubicacion, m.estado, m.cantidad
             FROM maquinas m
             INNER JOIN tipos_maquina tm ON tm.id_tipo_maquina = m.id_tipo_maquina
             WHERE m.id_maquina = @idMaquina
@@ -60,6 +64,8 @@ public class CatalogoRepository(MySqlDataSource dataSource)
             TipoMaquina = reader.GetString("tipo_maquina"),
             Nombre = reader.GetString("nombre"),
             Descripcion = reader.GetString("descripcion"),
+            MusculosObjetivo = reader.GetString("musculos_objetivo"),
+            ImagenUrl = reader.GetString("imagen_url"),
             Ubicacion = reader.GetString("ubicacion"),
             Estado = reader.GetString("estado"),
             Cantidad = reader.GetInt32("cantidad")

@@ -29,6 +29,8 @@ export type Maquina = {
   tipoMaquina: string;
   nombre: string;
   descripcion: string;
+  musculosObjetivo: string;
+  imagenUrl: string;
   ubicacion: string;
   estado: string;
   cantidad: number;

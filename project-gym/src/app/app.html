@@ -122,8 +122,22 @@
         } @else {
           @for (machine of machines(); track machine.idMaquina) {
             <article class="machine-card">
+              @if (machine.imagenUrl) {
+                <img class="machine-photo" [src]="machine.imagenUrl" [alt]="machine.nombre" loading="lazy" />
+              }
               <div>
-                <span class="status-dot" [class.available]="machine.estado === 'disponible'" [class.warning]="machine.estado === 'mantencion'" [class.blocked]="machine.estado === 'fuera_servicio' || machine.estado === 'ocupada'"></span>
+                <div class="machine-title-row">
+                  <span class="status-dot" [class.available]="machine.estado === 'disponible'" [class.warning]="machine.estado === 'mantencion'" [class.blocked]="machine.estado === 'fuera_servicio' || machine.estado === 'ocupada'"></span>
+                  <details class="machine-info">
+                    <summary aria-label="Ver informacion de {{ machine.nombre }}">i</summary>
+                    <div class="info-popover">
+                      <strong>Musculos objetivo</strong>
+                      <p>{{ machine.musculosObjetivo || 'Sin informacion registrada.' }}</p>
+                      <strong>Uso recomendado</strong>
+                      <p>{{ machine.descripcion }}</p>
+                    </div>
+                  </details>
+                </div>
                 <h3>{{ machine.nombre }}</h3>
                 <p>{{ machine.descripcion || 'Sin descripcion registrada.' }}</p>
               </div>
