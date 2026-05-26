@@ -84,4 +84,16 @@ public class RutinasController(
         var rutina = await rutinaRepository.UpdateRutinaAsync(idRutina, request);
         return rutina is null ? NotFound("Rutina no encontrada.") : Ok(rutina);
     }
+
+    [HttpDelete("{idRutina:int}")]
+    public async Task<IActionResult> EliminarRutina(int idRutina, [FromQuery] int idUsuario)
+    {
+        if (idUsuario <= 0)
+        {
+            return BadRequest("El usuario es obligatorio.");
+        }
+
+        var deleted = await rutinaRepository.DeleteRutinaAsync(idRutina, idUsuario);
+        return deleted ? NoContent() : Forbid("Solo puedes eliminar rutinas propias personalizadas o copiadas.");
+    }
 }

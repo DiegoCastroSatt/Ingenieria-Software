@@ -174,6 +174,76 @@ public class RutinaRepository(MySqlDataSource dataSource)
         }
     }
 
+    public async Task<bool> DeleteRutinaAsync(int idRutina, int idUsuario)
+    {
+        if (!await UsuarioPuedeEditarRutinaAsync(idRutina, idUsuario))
+        {
+            return false;
+        }
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+
+        try
+        {
+            await using (var usuarioRutinaCommand = connection.CreateCommand())
+            {
+                usuarioRutinaCommand.Transaction = transaction;
+                usuarioRutinaCommand.CommandText = "DELETE FROM usuario_rutina WHERE id_rutina = @idRutina AND id_usuario = @idUsuario;";
+                usuarioRutinaCommand.Parameters.AddWithValue("@idRutina", idRutina);
+                usuarioRutinaCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+                await usuarioRutinaCommand.ExecuteNonQueryAsync();
+            }
+
+            await using (var ejerciciosCommand = connection.CreateCommand())
+            {
+                ejerciciosCommand.Transaction = transaction;
+                ejerciciosCommand.CommandText = "DELETE FROM rutina_ejercicio WHERE id_rutina = @idRutina;";
+                ejerciciosCommand.Parameters.AddWithValue("@idRutina", idRutina);
+                await ejerciciosCommand.ExecuteNonQueryAsync();
+            }
+
+            await using (var sesionesCommand = connection.CreateCommand())
+            {
+                sesionesCommand.Transaction = transaction;
+                sesionesCommand.CommandText = "UPDATE sesiones_entrenamiento SET id_rutina = NULL WHERE id_rutina = @idRutina AND id_usuario = @idUsuario;";
+                sesionesCommand.Parameters.AddWithValue("@idRutina", idRutina);
+                sesionesCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+                await sesionesCommand.ExecuteNonQueryAsync();
+            }
+
+            await using (var progresoCommand = connection.CreateCommand())
+            {
+                progresoCommand.Transaction = transaction;
+                progresoCommand.CommandText = "UPDATE progreso SET id_rutina = NULL WHERE id_rutina = @idRutina AND id_usuario = @idUsuario;";
+                progresoCommand.Parameters.AddWithValue("@idRutina", idRutina);
+                progresoCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+                await progresoCommand.ExecuteNonQueryAsync();
+            }
+
+            await using (var rutinaCommand = connection.CreateCommand())
+            {
+                rutinaCommand.Transaction = transaction;
+                rutinaCommand.CommandText = """
+                    DELETE FROM rutinas
+                    WHERE id_rutina = @idRutina
+                      AND id_usuario = @idUsuario
+                      AND tipo_rutina IN ('personalizada', 'copiada');
+                    """;
+                rutinaCommand.Parameters.AddWithValue("@idRutina", idRutina);
+                rutinaCommand.Parameters.AddWithValue("@idUsuario", idUsuario);
+                var affectedRows = await rutinaCommand.ExecuteNonQueryAsync();
+                await transaction.CommitAsync();
+                return affectedRows > 0;
+            }
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
     public async Task<bool> UsuarioPuedeEditarRutinaAsync(int idRutina, int idUsuario)
     {
         await using var connection = await dataSource.OpenConnectionAsync();

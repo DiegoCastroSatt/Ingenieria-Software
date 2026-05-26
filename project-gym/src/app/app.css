@@ -439,6 +439,7 @@ h3 {
 .machine-grid {
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 14px;
+  overflow: visible;
 }
 
 .machine-card {
@@ -449,7 +450,8 @@ h3 {
   justify-content: space-between;
   gap: 16px;
   min-height: 360px;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .machine-card > div,
@@ -468,6 +470,7 @@ h3 {
   display: block;
   background: #0b0d0e;
   border-bottom: 1px solid var(--line-soft);
+  border-radius: 8px 8px 0 0;
 }
 
 .machine-title-row {
@@ -489,6 +492,11 @@ h3 {
 
 .machine-info {
   position: relative;
+  z-index: 30;
+}
+
+.machine-info[open] {
+  z-index: 300;
 }
 
 .machine-info summary {
@@ -513,7 +521,7 @@ h3 {
   position: absolute;
   right: 0;
   top: calc(100% + 10px);
-  z-index: 20;
+  z-index: 1000;
   width: min(260px, 72vw);
   padding: 14px;
   border: 1px solid var(--line-soft);
@@ -657,6 +665,33 @@ dd {
 .exercise-line {
   display: grid;
   gap: 4px;
+}
+
+.mini-row {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.mini-row div {
+  display: grid;
+  gap: 4px;
+}
+
+.trash-action {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 107, 107, 0.45);
+  border-radius: 7px;
+  color: var(--danger);
+  background: rgba(255, 107, 107, 0.08);
+  cursor: pointer;
+}
+
+.trash-action:hover {
+  border-color: var(--danger);
+  background: rgba(255, 107, 107, 0.16);
 }
 
 .two-column {

@@ -548,6 +548,28 @@ export class App implements OnInit {
     });
   }
 
+  protected eliminarRutina(routine: RutinaResumen): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para eliminar una rutina.');
+      return;
+    }
+
+    this.gymService.eliminarRutina(routine.idRutina, user.id).subscribe({
+      next: () => {
+        this.apiMessage.set(`Rutina eliminada: ${routine.nombre}.`);
+        this.userRoutines.update((routines) => routines.filter((item) => item.idRutina !== routine.idRutina));
+
+        if (this.sessionForm.idRutina === routine.idRutina) {
+          this.sessionForm.idRutina = 0;
+        }
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo eliminar la rutina.'));
+      }
+    });
+  }
+
   protected crearReserva(): void {
     const user = this.currentUser();
     if (!user) {

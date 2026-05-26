@@ -85,6 +85,12 @@ export class GymService {
     return this.http.post<RutinaDetalle>(`${this.apiUrl}/rutinas/${idRutina}/copiar`, payload);
   }
 
+  eliminarRutina(idRutina: number, idUsuario: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/rutinas/${idRutina}`, {
+      params: { idUsuario }
+    });
+  }
+
   crearReserva(payload: CrearReservaPayload): Observable<Reserva> {
     return this.http.post<Reserva>(`${this.apiUrl}/reservas`, payload);
   }

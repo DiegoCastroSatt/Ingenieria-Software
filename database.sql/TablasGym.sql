@@ -222,7 +222,7 @@ INSERT INTO tipos_maquina (nombre) VALUES
 
 -- maquinas
 INSERT INTO maquinas (id_tipo_maquina, nombre, descripcion, musculos_objetivo, imagen_url, ubicacion, estado, cantidad) VALUES
-(1, '45° Leg Press', 'Prensa inclinada para empuje de tren inferior con soporte lumbar.', 'Quadriceps, Glutes, Hamstrings', 'machines/45-leg-press.jpg', 'Sala Piernas', 'disponible', 2),
+(1, '45 degrees Leg Press', 'Prensa inclinada para empuje de tren inferior con soporte lumbar.', 'Quadriceps, Glutes, Hamstrings', 'machines/45-leg-press.jpg', 'Sala Piernas', 'disponible', 2),
 (1, 'Hack Squat', 'Sentadilla guiada para trabajar piernas con trayectoria estable.', 'Quadriceps, Glutes', 'machines/hack-squat.jpg', 'Sala Piernas', 'disponible', 1),
 (2, 'Hip Thrust Machine', 'Maquina para extension de cadera enfocada en gluteos.', 'Gluteus Maximus', 'machines/hip-thrust-machine.jpg', 'Sala Piernas', 'disponible', 1),
 (1, 'Belt Squat', 'Sentadilla con cinturon que reduce carga sobre la columna.', 'Quadriceps, Glutes, Hamstrings (Spinal Decompression)', 'machines/belt-squat.png', 'Sala Piernas', 'disponible', 1),

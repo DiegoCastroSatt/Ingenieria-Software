@@ -208,8 +208,13 @@
           } @else {
             @for (routine of userRoutines(); track routine.idRutina) {
               <div class="mini-row">
-                <span>{{ routine.nombre }}</span>
-                <small>{{ routine.tipoRutina }}</small>
+                <div>
+                  <span>{{ routine.nombre }}</span>
+                  <small>{{ routine.tipoRutina }}</small>
+                </div>
+                <button class="trash-action" type="button" (click)="eliminarRutina(routine)" title="Eliminar rutina" aria-label="Eliminar rutina {{ routine.nombre }}">
+                  🗑
+                </button>
               </div>
             }
           }
@@ -343,7 +348,7 @@
             </select>
           </label>
           <label>Notas<input type="text" [(ngModel)]="sessionForm.notas" /></label>
-          <button class="primary-action full" type="button" (click)="iniciarSesionEntrenamiento()">Iniciar sesion</button>
+          <button class="primary-action full" type="button" (click)="iniciarSesionEntrenamiento()">Comenzar entrenamiento</button>
         } @else {
           <div class="result-panel">
             <span>Sesion #{{ currentSession()!.idSesion }}</span>
