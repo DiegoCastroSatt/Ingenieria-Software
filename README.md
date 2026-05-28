@@ -55,11 +55,24 @@ Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cli
 - Verificación del estado de la aplicación y servicios
 - Monitoreo de conectividad con la base de datos
 
-## Historias de Usuario
-Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
+## Historias de Usuario y suz Criterios de Aceptación
+1) Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
 
-Como administrador, quiero poder monitorear la conectividad con la base de datos.
+a) Dado que el usuario ha iniciado sesión pero no posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema debe informar que aún no existen datos disponibles.
+b) Dado que el usuario ha iniciado sesión y posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema informa que existen datos disponibles.
 
+2) Como usuario, quiero poder acceder a mis metricas de desempeño.
+
+a) Dado que el usuario ha iniciado sesión y posee metricas registradas, cuando el usuario accede a la sección de métricas, el sistema debe mostrar sus métricas de desempeño actualizadas.
+b) Dado que el usuario ha iniciado sesión y no posee metricas registradas, cuando el usuario accede a la sección de métricas, el sistema debe mostrar un mensaje de "no hay métricas registras".
+
+3) Como usuario, quiero poder tener control de mis datos personales y contacto.
+
+a) Dado que el usuario ha iniciado sesión, cuando modifica su información personal y guarda los cambios, entoncces el sistema debe actualizar correctamente los datos ingresados.
+
+4) Como usuario, quiero añadir maquinas a "favoritos" para ahorrar tiempo al realizar reservas.
+
+a) Dado que el usuario ha iniciado sesión y visualiza una máquina disponible, cuando selecciona la opción “Añadir a favoritos”, entonces el sistema la agrega a su lista de favoritos.
 Como usuario, quiero poder acceder a mis metricas de desempeño.
 
 Como usuario, quiero poder tener control de mis datos personales y contacto.
