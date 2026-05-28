@@ -73,8 +73,3 @@ a) Dado que el usuario ha iniciado sesión, cuando modifica su información pers
 4) Como usuario, quiero añadir maquinas a "favoritos" para ahorrar tiempo al realizar reservas.
 
 a) Dado que el usuario ha iniciado sesión y visualiza una máquina disponible, cuando selecciona la opción “Añadir a favoritos”, entonces el sistema la agrega a su lista de favoritos.
-Como usuario, quiero poder acceder a mis metricas de desempeño.
-
-Como usuario, quiero poder tener control de mis datos personales y contacto.
-
-Como usuario, quiero añadir maquinas a "favoritos" para ahorrar tiempo al realizar reservas.
