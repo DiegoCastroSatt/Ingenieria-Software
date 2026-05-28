@@ -119,6 +119,8 @@
         } @else {
           @for (machine of machines(); track machine.idMaquina) {
             <article class="machine-card">
+              @if (machine.estado === 'mantencion') {
+                <p class="machine-unavailable">Temporalmente fuera de servicio</p>}
               @if (machine.imagenUrl) {
                 <img class="machine-photo" [src]="machine.imagenUrl" [alt]="machine.nombre" loading="lazy" />
               }
@@ -294,16 +296,33 @@
         <label>Maquina
           <select [(ngModel)]="reservationForm.idMaquina">
             @for (machine of machines(); track machine.idMaquina) {
-              <option [ngValue]="machine.idMaquina">{{ machine.nombre }} · {{ machine.estado }}</option>
+              <option
+                [ngValue]="machine.idMaquina"
+                [disabled]="estadoReservaMaquina(machine) !== 'disponible'"
+                [textContent]="machine.nombre + ' - ' + etiquetaEstadoReserva(machine)"
+              >
+                {{ machine.nombre }} · {{ machine.estado }}
+              </option>
             }
           </select>
         </label>
         <div class="form-grid two">
-          <label>Fecha<input type="date" [(ngModel)]="reservationForm.fechaReserva" /></label>
+          <label>Fecha<input type="date" [(ngModel)]="reservationForm.fechaReserva" (ngModelChange)="onFechaReservaChange()" /></label>
           <label>Inicio<input type="time" [(ngModel)]="reservationForm.horaInicio" /></label>
           <label>Fin<input type="time" [(ngModel)]="reservationForm.horaFin" /></label>
         </div>
-        <button class="primary-action full" type="button" (click)="crearReserva()">Reservar maquina</button>
+        <div class="reservation-status" [class.available]="maquinaSeleccionadaDisponible()" [class.blocked]="!maquinaSeleccionadaDisponible()">
+          {{ mensajeReservaSeleccionada() }}
+        </div>
+        <button
+          class="primary-action full"
+          type="button"
+          (click)="crearReserva()"
+          [disabled]="!maquinaSeleccionadaDisponible()"
+          [textContent]="textoBotonReserva()"
+        >
+          Reservar máquina
+        </button>
       </article>
 
       <article class="panel">

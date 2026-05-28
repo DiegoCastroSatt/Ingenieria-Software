@@ -99,6 +99,12 @@ export class GymService {
     return this.http.get<Reserva[]>(`${this.apiUrl}/reservas/usuario/${idUsuario}`);
   }
 
+  getReservasActivas(fechaReserva: string): Observable<Reserva[]> {
+    return this.http.get<Reserva[]>(`${this.apiUrl}/reservas/activas`, {
+      params: { fechaReserva }
+    });
+  }
+
   iniciarSesion(payload: IniciarSesionPayload): Observable<SesionEntrenamiento> {
     return this.http.post<SesionEntrenamiento>(`${this.apiUrl}/sesiones`, payload);
   }

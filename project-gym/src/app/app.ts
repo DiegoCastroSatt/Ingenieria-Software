@@ -66,6 +66,7 @@ export class App implements OnInit {
   protected readonly machines = signal<Maquina[]>([]);
   protected readonly exercises = signal<Ejercicio[]>([]);
   protected readonly reservations = signal<Reserva[]>([]);
+  protected readonly activeReservations = signal<Reserva[]>([]);
   protected readonly currentSession = signal<SesionEntrenamiento | null>(null);
   protected readonly workoutHistory = signal<SesionHistorial[]>([]);
 
@@ -92,6 +93,87 @@ export class App implements OnInit {
       description: 'Ejercicio de bajo impacto que trabaja todo el cuerpo'
     }
   ]);
+  protected maquinaSeleccionadaDisponible(): boolean {
+    return this.horarioReservaValido() && this.estadoReservaSeleccionada() === 'disponible';
+  }
+
+  protected estadoReservaSeleccionada(): string {
+    const selectedMachine = this.machines().find(
+      (machine) => machine.idMaquina === this.reservationForm.idMaquina
+    );
+
+    return selectedMachine ? this.estadoReservaMaquina(selectedMachine) : 'sin_seleccion';
+  }
+
+  protected estadoReservaMaquina(machine: Maquina): string {
+    if (machine.estado === 'mantencion' || machine.estado === 'fuera_servicio') {
+      return 'fuera_servicio';
+    }
+
+    if (machine.estado === 'ocupada' || this.tieneReservaTraslapada(machine.idMaquina)) {
+      return 'reservado';
+    }
+
+    return 'disponible';
+  }
+
+  protected etiquetaEstadoReserva(machine: Maquina): string {
+    const estado = this.estadoReservaMaquina(machine);
+
+    if (estado === 'reservado') {
+      return 'Reservado';
+    }
+
+    if (estado === 'fuera_servicio') {
+      return 'Fuera de Servicio';
+    }
+
+    return 'Disponible';
+  }
+
+  protected textoBotonReserva(): string {
+    const estado = this.estadoReservaSeleccionada();
+
+    if (estado === 'reservado') {
+      return 'Reservado';
+    }
+
+    if (estado === 'fuera_servicio') {
+      return 'Fuera de Servicio';
+    }
+
+    if (estado === 'sin_seleccion') {
+      return 'Selecciona una maquina';
+    }
+
+    if (!this.horarioReservaValido()) {
+      return 'Horario no valido';
+    }
+
+    return 'Reservar maquina';
+  }
+
+  protected mensajeReservaSeleccionada(): string {
+    const estado = this.estadoReservaSeleccionada();
+
+    if (estado === 'reservado') {
+      return 'Reservado: esta maquina ya tiene una reserva activa que cruza con este horario.';
+    }
+
+    if (estado === 'fuera_servicio') {
+      return 'Fuera de Servicio: esta maquina esta en mantencion o no esta operativa.';
+    }
+
+    if (!this.horarioReservaValido()) {
+      return 'El horario debe tener una hora de inicio menor que la hora de termino.';
+    }
+
+    return 'Disponible para el horario seleccionado.';
+  }
+
+  protected onFechaReservaChange(): void {
+    this.loadActiveReservations();
+  }
 
   protected readonly catalogFuerza = signal<ExerciseWithImage[]>([
     { 
@@ -319,6 +401,7 @@ export class App implements OnInit {
 
     this.checkHealth();
     this.loadCatalogs();
+    this.loadActiveReservations();
     this.loadPredefinedRoutines();
   }
 
@@ -576,6 +659,14 @@ export class App implements OnInit {
       this.apiMessage.set('Debes iniciar sesion para reservar una maquina.');
       return;
     }
+    if (!this.horarioReservaValido()) {
+      this.apiMessage.set('La hora de inicio debe ser menor que la hora de termino.');
+      return;
+    }
+    if (!this.maquinaSeleccionadaDisponible()) {
+      this.apiMessage.set(this.mensajeReservaSeleccionada());
+      return;
+    }
 
     this.gymService.crearReserva({
       idUsuario: user.id,
@@ -586,6 +677,7 @@ export class App implements OnInit {
     }).subscribe({
       next: () => {
         this.apiMessage.set('Reserva creada correctamente.');
+        this.loadActiveReservations();
         this.loadReservations(user.id);
       },
       error: (error) => {
@@ -683,6 +775,37 @@ export class App implements OnInit {
     this.loadHistory(user.id);
   }
 
+  private tieneReservaTraslapada(idMaquina: number): boolean {
+    if (!this.horarioReservaValido()) {
+      return false;
+    }
+
+    const inicioNuevo = this.horaEnMinutos(this.reservationForm.horaInicio);
+    const finNuevo = this.horaEnMinutos(this.reservationForm.horaFin);
+
+    return this.activeReservations().some((reservation) =>
+      reservation.idMaquina === idMaquina &&
+      reservation.estado === 'activa' &&
+      reservation.fechaReserva === this.reservationForm.fechaReserva &&
+      this.horaEnMinutos(reservation.horaInicio) < finNuevo &&
+      this.horaEnMinutos(reservation.horaFin) > inicioNuevo
+    );
+  }
+
+  private horarioReservaValido(): boolean {
+    return this.horaEnMinutos(this.reservationForm.horaInicio) < this.horaEnMinutos(this.reservationForm.horaFin);
+  }
+
+  private horaEnMinutos(value: string): number {
+    const [hours, minutes] = value.split(':').map(Number);
+
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+      return 0;
+    }
+
+    return hours * 60 + minutes;
+  }
+
   private loadCatalogs(): void {
     this.gymService.getMaquinas().subscribe({
       next: (machines) => {
@@ -737,6 +860,18 @@ export class App implements OnInit {
       next: (reservations) => {
         this.reservations.set(reservations);
       }
+    });
+  }
+
+  private loadActiveReservations(): void {
+    if (!this.reservationForm.fechaReserva) {
+      this.activeReservations.set([]);
+      return;
+    }
+
+    this.gymService.getReservasActivas(this.reservationForm.fechaReserva).subscribe({
+      next: (reservations) => this.activeReservations.set(reservations),
+      error: () => this.activeReservations.set([])
     });
   }
 

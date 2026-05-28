@@ -31,6 +31,31 @@ public class ReservaRepository(MySqlDataSource dataSource)
         return reservas;
     }
 
+    public async Task<IReadOnlyList<Reserva>> ListReservasActivasPorFechaAsync(DateOnly fechaReserva)
+    {
+        var reservas = new List<Reserva>();
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT r.id_reserva, r.id_usuario, r.id_maquina, m.nombre AS nombre_maquina, r.fecha_reserva, r.hora_inicio, r.hora_fin,
+                   r.estado, r.fecha_creacion, r.fecha_actualizacion
+            FROM reservas r
+            INNER JOIN maquinas m ON m.id_maquina = r.id_maquina
+            WHERE r.fecha_reserva = @fechaReserva
+              AND r.estado = 'activa'
+            ORDER BY r.hora_inicio ASC;
+            """;
+        command.Parameters.AddWithValue("@fechaReserva", fechaReserva.ToDateTime(TimeOnly.MinValue));
+
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            reservas.Add(MapReserva(reader));
+        }
+
+        return reservas;
+    }
+
     public async Task<Reserva> CreateReservaAsync(CrearReservaRequest request)
     {
         await using var connection = await dataSource.OpenConnectionAsync();

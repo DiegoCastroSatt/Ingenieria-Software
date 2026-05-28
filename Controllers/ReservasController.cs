@@ -19,6 +19,12 @@ public class ReservasController(
         return Ok(await reservaRepository.ListReservasUsuarioAsync(idUsuario));
     }
 
+    [HttpGet("activas")]
+    public async Task<ActionResult<IReadOnlyList<Reserva>>> GetReservasActivas([FromQuery] DateOnly fechaReserva)
+    {
+        return Ok(await reservaRepository.ListReservasActivasPorFechaAsync(fechaReserva));
+    }
+
     [HttpPost]
     public async Task<ActionResult<Reserva>> CrearReserva([FromBody] CrearReservaRequest request)
     {
