@@ -33,6 +33,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
                 Id = usuario.IdUsuario,
                 Nombre = usuario.Nombre,
                 Correo = usuario.Correo,
+                Nacionalidad = usuario.Nacionalidad,
                 Rol = usuario.Rol
             }
         });
@@ -58,6 +59,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             Nombre = request.Nombre.Trim(),
             Rut = request.Rut.Trim(),
             Correo = request.Correo.Trim(),
+            Nacionalidad = request.Nacionalidad.Trim(),
             Rol = string.IsNullOrWhiteSpace(request.Rol) ? "usuario" : request.Rol.Trim(),
             ContrasenaHash = passwordHashService.HashPassword(request.Password.Trim())
         });
