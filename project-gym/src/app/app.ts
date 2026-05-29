@@ -401,10 +401,25 @@ export class App implements OnInit {
       return;
     }
 
+    this.restoreUserSession();
     this.checkHealth();
     this.loadCatalogs();
     this.loadActiveReservations();
     this.loadPredefinedRoutines();
+  }
+
+  private restoreUserSession(): void {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      try {
+        const user: AuthUser = JSON.parse(savedUser);
+        this.currentUser.set(user);
+        this.loadUserData(user.id);
+      } catch (error) {
+        console.error('Error restoring user session:', error);
+        localStorage.removeItem('currentUser');
+      }
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -555,6 +570,7 @@ export class App implements OnInit {
 
   protected cerrarSesion(): void {
     this.currentUser.set(null);
+    localStorage.removeItem('currentUser');
     this.bmiResult.set(null);
     this.recommendedRoutines.set([]);
     this.userRoutines.set([]);
@@ -580,6 +596,7 @@ export class App implements OnInit {
       next: (response: AuthResponse) => {
         this.loginLoading.set(false);
         this.currentUser.set(response.user);
+        localStorage.setItem('currentUser', JSON.stringify(response.user));
         this.cerrarLogin();
         this.apiMessage.set(`Sesion iniciada para ${response.user.nombre}.`);
         this.loadUserData(response.user.id);
