@@ -409,14 +409,24 @@ export class App implements OnInit {
   }
 
   private restoreUserSession(): void {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      try {
+    if (!isPlatformBrowser(this.platformId)) {
+      console.log('Not in browser, skipping session restore');
+      return;
+    }
+
+    try {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
         const user: AuthUser = JSON.parse(savedUser);
+        console.log('Restoring user from localStorage:', user);
         this.currentUser.set(user);
         this.loadUserData(user.id);
-      } catch (error) {
-        console.error('Error restoring user session:', error);
+      } else {
+        console.log('No saved user in localStorage');
+      }
+    } catch (error) {
+      console.error('Error restoring user session:', error);
+      if (typeof localStorage !== 'undefined') {
         localStorage.removeItem('currentUser');
       }
     }
@@ -570,7 +580,10 @@ export class App implements OnInit {
 
   protected cerrarSesion(): void {
     this.currentUser.set(null);
-    localStorage.removeItem('currentUser');
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('currentUser');
+      console.log('User removed from localStorage');
+    }
     this.bmiResult.set(null);
     this.recommendedRoutines.set([]);
     this.userRoutines.set([]);
@@ -596,7 +609,10 @@ export class App implements OnInit {
       next: (response: AuthResponse) => {
         this.loginLoading.set(false);
         this.currentUser.set(response.user);
-        localStorage.setItem('currentUser', JSON.stringify(response.user));
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('currentUser', JSON.stringify(response.user));
+          console.log('User saved to localStorage');
+        }
         this.cerrarLogin();
         this.apiMessage.set(`Sesion iniciada para ${response.user.nombre}.`);
         this.loadUserData(response.user.id);
@@ -891,22 +907,34 @@ export class App implements OnInit {
   }
 
   private loadUserData(idUsuario: number): void {
+    console.log('Loading user data for ID:', idUsuario);
     this.loadUserRoutines(idUsuario);
     this.loadReservations(idUsuario);
     this.loadHistory(idUsuario);
     this.gymService.getRecomendaciones(idUsuario).subscribe({
-      next: (routines) => this.recommendedRoutines.set(routines),
-      error: () => this.recommendedRoutines.set([])
+      next: (routines) => {
+        console.log('Loaded recommendations:', routines);
+        this.recommendedRoutines.set(routines);
+      },
+      error: (err) => {
+        console.error('Error loading recommendations:', err);
+        this.recommendedRoutines.set([]);
+      }
     });
   }
 
   private loadUserRoutines(idUsuario: number): void {
     this.gymService.getRutinasUsuario(idUsuario).subscribe({
       next: (routines) => {
+        console.log('Loaded user routines:', routines);
         this.userRoutines.set(routines.filter((routine) => routine.idUsuario === idUsuario));
         if (!this.sessionForm.idRutina && routines.length > 0) {
           this.sessionForm.idRutina = routines[0].idRutina;
         }
+      },
+      error: (err) => {
+        console.error('Error loading user routines:', err);
+        this.userRoutines.set([]);
       }
     });
   }
@@ -914,7 +942,12 @@ export class App implements OnInit {
   private loadReservations(idUsuario: number): void {
     this.gymService.getReservasUsuario(idUsuario).subscribe({
       next: (reservations) => {
+        console.log('Loaded user reservations:', reservations);
         this.reservations.set(reservations);
+      },
+      error: (err) => {
+        console.error('Error loading reservations:', err);
+        this.reservations.set([]);
       }
     });
   }
@@ -934,7 +967,12 @@ export class App implements OnInit {
   private loadHistory(idUsuario: number): void {
     this.gymService.getHistorial(idUsuario).subscribe({
       next: (history) => {
+        console.log('Loaded workout history:', history);
         this.workoutHistory.set(history);
+      },
+      error: (err) => {
+        console.error('Error loading history:', err);
+        this.workoutHistory.set([]);
       }
     });
   }
