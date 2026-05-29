@@ -63,6 +63,8 @@ export class App implements OnInit {
   protected readonly userRoutines = signal<RutinaResumen[]>([]);
   protected readonly routineDetails = signal<Record<number, RutinaDetalle>>({});
   protected readonly expandedRoutines = signal<Record<number, boolean>>({});
+  protected readonly selectedMachineByRoutine = signal<Record<number, number>>({});
+  protected readonly extraMachinesByRoutine = signal<Record<number, Maquina[]>>({});
   protected readonly machines = signal<Maquina[]>([]);
   protected readonly exercises = signal<Ejercicio[]>([]);
   protected readonly reservations = signal<Reserva[]>([]);
@@ -464,6 +466,43 @@ export class App implements OnInit {
 
   protected getRoutineDetail(routineId: number): RutinaDetalle | null {
     return this.routineDetails()[routineId] ?? null;
+  }
+
+  protected getSelectedMachineForRoutine(routineId: number): number {
+    return this.selectedMachineByRoutine()[routineId] ?? 0;
+  }
+
+  protected setSelectedMachineForRoutine(routineId: number, idMaquina: number): void {
+    this.selectedMachineByRoutine.update((current) => ({
+      ...current,
+      [routineId]: idMaquina
+    }));
+  }
+
+  protected getExtraMachinesForRoutine(routineId: number): Maquina[] {
+    return this.extraMachinesByRoutine()[routineId] ?? [];
+  }
+
+  protected agregarMaquinaARutina(routineId: number): void {
+    const idMaquina = this.getSelectedMachineForRoutine(routineId);
+    const machine = this.machines().find((item) => item.idMaquina === idMaquina);
+
+    if (!machine) {
+      this.apiMessage.set('Selecciona una maquina para agregarla a la rutina.');
+      return;
+    }
+
+    const currentMachines = this.getExtraMachinesForRoutine(routineId);
+    if (currentMachines.some((item) => item.idMaquina === machine.idMaquina)) {
+      this.apiMessage.set('Esta maquina ya fue agregada a la rutina.');
+      return;
+    }
+
+    this.extraMachinesByRoutine.update((current) => ({
+      ...current,
+      [routineId]: [...currentMachines, machine]
+    }));
+    this.apiMessage.set(`Maquina agregada a la rutina: ${machine.nombre}.`);
   }
 
   protected toggleExercise(index: number): void {

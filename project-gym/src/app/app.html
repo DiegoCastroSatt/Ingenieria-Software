@@ -192,6 +192,40 @@
                       }
                     </div>
                   }
+
+                  <div class="routine-custom-section">
+                    <div>
+                      <strong>Personalizar rutina</strong>
+                      <span>Agrega maquinas manualmente a esta rutina.</span>
+                    </div>
+
+                    <div class="routine-machine-add">
+                      <select
+                        [ngModel]="getSelectedMachineForRoutine(routine.idRutina)"
+                        (ngModelChange)="setSelectedMachineForRoutine(routine.idRutina, $event)"
+                        aria-label="Seleccionar maquina para agregar a {{ routine.nombre }}"
+                      >
+                        <option [ngValue]="0">Seleccionar maquina</option>
+                        @for (machine of machines(); track machine.idMaquina) {
+                          <option [ngValue]="machine.idMaquina">{{ machine.nombre }}</option>
+                        }
+                      </select>
+                      <button class="plus-action" type="button" (click)="agregarMaquinaARutina(routine.idRutina)" aria-label="Agregar maquina a {{ routine.nombre }}">
+                        +
+                      </button>
+                    </div>
+
+                    @if (getExtraMachinesForRoutine(routine.idRutina).length > 0) {
+                      <div class="added-machine-stack">
+                        @for (machine of getExtraMachinesForRoutine(routine.idRutina); track machine.idMaquina) {
+                          <div class="added-machine-line">
+                            <strong>{{ machine.nombre }}</strong>
+                            <span>{{ machine.ubicacion || 'Sin ubicacion' }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 </div>
               </article>
             }
