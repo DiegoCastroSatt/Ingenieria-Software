@@ -7,6 +7,7 @@ public class Usuario
     public string Rut { get; set; } = string.Empty;
     public string Correo { get; set; } = string.Empty;
     public string ContrasenaHash { get; set; } = string.Empty;
+    public string Nacionalidad { get; set; } = string.Empty;
     public string Rol { get; set; } = "usuario";
     public DateTime FechaCreacion { get; set; }
     public DateTime FechaActualizacion { get; set; }
