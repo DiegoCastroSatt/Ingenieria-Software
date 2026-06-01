@@ -56,7 +56,7 @@ Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cli
 - Monitoreo de conectividad con la base de datos
 Historias de Usuario y sus Criterios de Aceptación
 
-### Historias de Usuario y Criterios de Aceptacion
+## Historias de Usuario y Criterios de Aceptacion
 1. Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
 
 a) Dado que el usuario ha iniciado sesión pero no posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema debe informar que aún no existen datos disponibles.
