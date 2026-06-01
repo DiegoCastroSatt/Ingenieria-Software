@@ -54,36 +54,25 @@ Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cli
 ### Health Check
 - Verificación del estado de la aplicación y servicios
 - Monitoreo de conectividad con la base de datos
+Historias de Usuario y sus Criterios de Aceptación
 
-## Historias de Usuario y suz Criterios de Aceptación
-1) Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
+### Historias de Usuario y Criterios de Aceptacion
+1. Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
 
-<<<<<<< HEAD
 a) Dado que el usuario ha iniciado sesión pero no posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema debe informar que aún no existen datos disponibles.
-b) Dado que el usuario ha iniciado sesión y posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema informa que existen datos disponibles.
 
-2) Como usuario, quiero poder acceder a mis metricas de desempeño.
+b) Dado que el usuario ha iniciado sesión y posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema debe informar que existen datos disponibles.
 
-a) Dado que el usuario ha iniciado sesión y posee metricas registradas, cuando el usuario accede a la sección de métricas, el sistema debe mostrar sus métricas de desempeño actualizadas.
-b) Dado que el usuario ha iniciado sesión y no posee metricas registradas, cuando el usuario accede a la sección de métricas, el sistema debe mostrar un mensaje de "no hay métricas registras".
+2. Como usuario, quiero poder acceder a mis métricas de desempeño.
 
-3) Como usuario, quiero poder tener control de mis datos personales y contacto.
+a) Dado que el usuario ha iniciado sesión y posee métricas registradas, cuando el usuario accede a la sección de métricas, entonces el sistema debe mostrar sus métricas de desempeño actualizadas.
 
-a) Dado que el usuario ha iniciado sesión, cuando modifica su información personal y guarda los cambios, entoncces el sistema debe actualizar correctamente los datos ingresados.
+b) Dado que el usuario ha iniciado sesión y no posee métricas registradas, cuando el usuario accede a la sección de métricas, entonces el sistema debe mostrar un mensaje indicando que no hay métricas registradas.
 
-4) Como usuario, quiero añadir maquinas a "favoritos" para ahorrar tiempo al realizar reservas.
+3. Como usuario, quiero poder tener control de mis datos personales y de contacto.
 
-a) Dado que el usuario ha iniciado sesión y visualiza una máquina disponible, cuando selecciona la opción “Añadir a favoritos”, entonces el sistema la agrega a su lista de favoritos.
-=======
-a) Dado que el usuario ha iniciado sesión pero no posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema debe informar que aún no existen datos disponibles. 
-b) Dado que el usuario ha iniciado sesión y posee registros, cuando el usuario accede a la sección de progreso, entonces el sistema informa que existen datos disponibles.
+a) Dado que el usuario ha iniciado sesión, cuando modifica su información personal y guarda los cambios, entonces el sistema debe actualizar correctamente los datos ingresados.
 
-2) Como usuario, quiero poder acceder a mis metricas de desempeño.
-a) Dado que el usuario ha iniciado sesión y posee metricas registradas, cuando el usuario accede a la sección de métricas, el sistema debe mostrar sus métricas de desempeño actualizadas. b) Dado que el usuario ha iniciado sesión y no posee metricas registradas, cuando el usuario accede a la sección de métricas, el sistema debe mostrar un mensaje de "no hay métricas registras".
+4. Como usuario, quiero añadir máquinas a favoritos para ahorrar tiempo al realizar reservas.
 
-3) Como usuario, quiero poder tener control de mis datos personales y contacto.
-a) Dado que el usuario ha iniciado sesión, cuando modifica su información personal y guarda los cambios, entoncces el sistema debe actualizar correctamente los datos ingresados.
-
-4) Como usuario, quiero añadir maquinas a "favoritos" para ahorrar tiempo al realizar reservas.
-a) Dado que el usuario ha iniciado sesión y visualiza una máquina disponible, cuando selecciona la opción “Añadir a favoritos”, entonces el sistema la agrega a su lista de favoritos.
->>>>>>> b7d9d7c (Fix cuando se selecciona una maquina ocupada ahora sale la restriccion que debia salir antes)
+a) Dado que el usuario ha iniciado sesión y visualiza una máquina disponible, cuando selecciona la opción “Añadir a favoritos”, entonces el sistema debe agregarla a su lista de favoritos.
