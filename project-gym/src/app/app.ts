@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
-  AuthResponse,
   AuthUser,
   CompletarSesionPayload,
   Ejercicio,
@@ -18,6 +17,7 @@ import {
   SesionHistorial
 } from './core/models/auth.models';
 import { GymService } from './core/services/gym-data.service';
+import { AuthService } from './core/services/auth.service';
 
 type DailyExercise = {
   name: string;
@@ -43,6 +43,7 @@ type ExerciseWithImage = {
 })
 export class App implements OnInit {
   private readonly gymService = inject(GymService);
+  private readonly authService = inject(AuthService);
   private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly title = signal('project-gym');
@@ -415,20 +416,17 @@ export class App implements OnInit {
     }
 
     try {
-      const savedUser = localStorage.getItem('currentUser');
-      if (savedUser) {
-        const user: AuthUser = JSON.parse(savedUser);
-        console.log('Restoring user from localStorage:', user);
+      const user = this.authService.currentUser();
+      if (user) {
+        console.log('Restoring user from AuthService:', user);
         this.currentUser.set(user);
         this.loadUserData(user.id);
       } else {
-        console.log('No saved user in localStorage');
+        console.log('No active user session');
       }
     } catch (error) {
       console.error('Error restoring user session:', error);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem('currentUser');
-      }
+      this.authService.logout();
     }
   }
 
@@ -580,10 +578,7 @@ export class App implements OnInit {
 
   protected cerrarSesion(): void {
     this.currentUser.set(null);
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('currentUser');
-      console.log('User removed from localStorage');
-    }
+    this.authService.logout();
     this.bmiResult.set(null);
     this.recommendedRoutines.set([]);
     this.userRoutines.set([]);
@@ -605,14 +600,10 @@ export class App implements OnInit {
     this.loginLoading.set(true);
     this.loginError.set('');
 
-    this.gymService.login(nombre, password).subscribe({
-      next: (response: AuthResponse) => {
+    this.authService.login(nombre, password).subscribe({
+      next: (response) => {
         this.loginLoading.set(false);
         this.currentUser.set(response.user);
-        if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem('currentUser', JSON.stringify(response.user));
-          console.log('User saved to localStorage');
-        }
         this.cerrarLogin();
         this.apiMessage.set(`Sesion iniciada para ${response.user.nombre}.`);
         this.loadUserData(response.user.id);
@@ -641,8 +632,8 @@ export class App implements OnInit {
     this.registerError.set('');
     this.registerSuccess.set('');
 
-    this.gymService.registro(payload).subscribe({
-      next: (response: AuthResponse) => {
+    this.authService.register(payload).subscribe({
+      next: (response) => {
         this.registerLoading.set(false);
         this.registerSuccess.set(response.message);
         this.currentUser.set(response.user);
