@@ -16,6 +16,7 @@ export type AuthUser = {
 export type AuthResponse = {
   message: string;
   user: AuthUser;
+  token: string;
 };
 
 export type HealthResponse = {
