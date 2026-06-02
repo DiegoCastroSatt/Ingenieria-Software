@@ -1,30 +1,9 @@
 ## DoR
-### Progreso de usuario
-
-* Existe un mecanismo para identificar si el usuario posee registros de progreso.
-* El mensaje a mostrar cuando no existan datos está definido.
-* La pantalla de progreso se encuentra diseñada.
-* El equipo comprende el flujo esperado.
-
-### Métricas de desempeño
-
-* LLas métricas a mostrar están definidas.
-* Existe una fuente de datos para obtener las métricas.
-* Se encuentran especificadas las reglas de actualización.
-* El equipo entiende cómo se calcularán o recuperarán las métricas.
-
-### Datos personales y de contacto
-
-* Los campos editables están definidos.
-* Las validaciones requeridas están documentadas.
-* Se encuentra disponible el mecanismo de actualización de datos.
-* El equipo comprende las restricciones asociadas a cada campo.
-
-### Máquinas a favoritos
-
-* Existe una lista o estructura para almacenar favoritos.
-* Las máquinas pueden ser identificadas de forma única.
-* Está definido el comportamiento esperado al agregar favoritos.
-* El usuario debe encontrarse autenticado.
+* La historia de usuario está claramente definida.
+* Se encuentra especificado el comportamiento esperado para agregar y eliminar favoritos.
+* Los criterios de aceptación han sido acordados por el equipo.
+* Existe una definición clara de la estructura de datos que almacenará los favoritos.
+* Se identificaron las dependencias con el catálogo de máquinas y el sistema de usuarios.
+* La historia ha sido estimada por el equipo de desarrollo.
 
 ## DoD
