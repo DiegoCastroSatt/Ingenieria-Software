@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Softawer.Data;
 using Softawer.Models;
@@ -93,7 +94,8 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             return BadRequest("Todos los campos son obligatorios.");
         }
 
-        if (!new EmailAddressAttribute().IsValid(request.Correo))
+        // Simple regex para validar formato básico de email
+        if (!Regex.IsMatch(request.Correo.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
             return BadRequest("El correo no tiene un formato valido.");
         }
