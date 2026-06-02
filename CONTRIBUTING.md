@@ -2,6 +2,7 @@
 * Titulo y descripción de la historia de usyario claros
 * Estimacion de esfuerzo a realizar (Story points)
 * Dependencias externas resueltas (APIs de terceros listas)
+* Que las Tareas no sean dependientes de otras (a menos que sea un flujo de trabajo obligatorio)
 
 
 ## DoD
