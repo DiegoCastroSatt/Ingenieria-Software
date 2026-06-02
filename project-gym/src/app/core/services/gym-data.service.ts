@@ -5,7 +5,6 @@ import { enviroment } from '../../../enviroments/enviroment';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
-  AuthResponse,
   CompletarSesionPayload,
   CopiarRutinaPayload,
   CrearReservaPayload,
@@ -17,7 +16,6 @@ import {
   ImcRecommendationResponse,
   IniciarSesionPayload,
   Maquina,
-  RegisterPayload,
   Reserva,
   RutinaDetalle,
   RutinaResumen,
@@ -32,14 +30,6 @@ export class GymService {
   private readonly apiUrl = enviroment.apiUrl;
 
   constructor(private readonly http: HttpClient) {}
-
-  login(nombre: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { nombre, password });
-  }
-
-  registro(usuario: RegisterPayload): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, usuario);
-  }
 
   health(): Observable<HealthResponse> {
     return this.http.get<HealthResponse>(`${this.apiUrl}/health`);
