@@ -22,3 +22,8 @@ public class CrearReservaRequest
     public TimeOnly HoraInicio { get; set; }
     public TimeOnly HoraFin { get; set; }
 }
+
+public class CancelarReservaRequest
+{
+    public int IdUsuario { get; set; }
+}

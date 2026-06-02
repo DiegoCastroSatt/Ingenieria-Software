@@ -5,6 +5,7 @@ import { enviroment } from '../../../enviroments/enviroment';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
+  CancelarReservaPayload,
   CompletarSesionPayload,
   CopiarRutinaPayload,
   CrearReservaPayload,
@@ -83,6 +84,10 @@ export class GymService {
 
   crearReserva(payload: CrearReservaPayload): Observable<Reserva> {
     return this.http.post<Reserva>(`${this.apiUrl}/reservas`, payload);
+  }
+
+  cancelarReserva(idReserva: number, payload: CancelarReservaPayload): Observable<Reserva> {
+    return this.http.post<Reserva>(`${this.apiUrl}/reservas/${idReserva}/cancelar`, payload);
   }
 
   getReservasUsuario(idUsuario: number): Observable<Reserva[]> {

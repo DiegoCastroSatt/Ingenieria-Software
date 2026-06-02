@@ -28,6 +28,7 @@ builder.Services.AddSingleton(new MySqlDataSource(connectionString));
 builder.Services.AddScoped<UsuarioRepository>();
 builder.Services.AddScoped<PerfilUsuarioRepository>();
 builder.Services.AddScoped<DatabaseHealthRepository>();
+builder.Services.AddScoped<DatabaseSchemaInitializer>();
 builder.Services.AddScoped<CatalogoRepository>();
 builder.Services.AddScoped<RutinaRepository>();
 builder.Services.AddScoped<ReservaRepository>();
@@ -57,6 +58,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.Zero
         };
     });
+builder.Services.AddAuthorization();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -70,6 +72,20 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var schemaInitializer = scope.ServiceProvider.GetRequiredService<DatabaseSchemaInitializer>();
+        await schemaInitializer.EnsureReservaCancelacionesAsync();
+    }
+    catch (Exception exception)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning(exception, "No se pudo asegurar la tabla reserva_cancelaciones.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

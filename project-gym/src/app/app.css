@@ -404,10 +404,13 @@ h3 {
 .flow-card strong {
   display: block;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .flow-card.accent {
   border-color: rgba(72, 213, 151, 0.8);
+  max-height: 170px;
+  overflow: auto;
 }
 
 .metric-grid {
@@ -768,6 +771,18 @@ dd {
 }
 
 .trash-action:hover {
+  border-color: var(--danger);
+  background: rgba(255, 107, 107, 0.16);
+}
+
+.cancel-reservation-action {
+  min-height: 36px;
+  padding: 0 12px;
+  justify-self: end;
+  font-weight: 800;
+}
+
+.cancel-reservation-action:hover {
   border-color: var(--danger);
   background: rgba(255, 107, 107, 0.16);
 }

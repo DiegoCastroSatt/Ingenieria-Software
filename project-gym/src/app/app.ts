@@ -72,6 +72,7 @@ export class App implements OnInit {
   protected readonly activeReservations = signal<Reserva[]>([]);
   protected readonly currentSession = signal<SesionEntrenamiento | null>(null);
   protected readonly workoutHistory = signal<SesionHistorial[]>([]);
+  protected readonly todayIso = this.getTodayIso();
 
   protected readonly catalogCardio = signal<ExerciseWithImage[]>([
     { 
@@ -97,10 +98,14 @@ export class App implements OnInit {
     }
   ]);
   protected maquinaSeleccionadaDisponible(): boolean {
-    return this.horarioReservaValido() && this.estadoReservaSeleccionada() === 'disponible';
+    return this.fechaReservaPermitida() && this.horarioReservaValido() && this.estadoReservaSeleccionada() === 'disponible';
   }
 
   protected estadoReservaSeleccionada(): string {
+    if (!this.fechaReservaPermitida()) {
+      return 'fecha_pasada';
+    }
+
     const selectedMachine = this.machines().find(
       (machine) => machine.idMaquina === this.reservationForm.idMaquina
     );
@@ -149,6 +154,10 @@ export class App implements OnInit {
       return 'Selecciona una maquina';
     }
 
+    if (estado === 'fecha_pasada') {
+      return 'Fecha no valida';
+    }
+
     if (!this.horarioReservaValido()) {
       return 'Horario no valido';
     }
@@ -167,6 +176,10 @@ export class App implements OnInit {
       return 'Fuera de Servicio: esta maquina esta en mantencion o no esta operativa.';
     }
 
+    if (estado === 'fecha_pasada') {
+      return 'No se pueden crear reservas en fechas anteriores a hoy.';
+    }
+
     if (!this.horarioReservaValido()) {
       return 'El horario debe tener una hora de inicio menor que la hora de termino.';
     }
@@ -175,6 +188,11 @@ export class App implements OnInit {
   }
 
   protected onFechaReservaChange(): void {
+    if (!this.fechaReservaPermitida()) {
+      this.activeReservations.set([]);
+      return;
+    }
+
     this.loadActiveReservations();
   }
 
@@ -396,7 +414,7 @@ export class App implements OnInit {
   };
 
   ngOnInit(): void {
-    this.reservationForm.fechaReserva = new Date().toISOString().slice(0, 10);
+    this.reservationForm.fechaReserva = this.todayIso;
 
     if (!isPlatformBrowser(this.platformId)) {
       return;
@@ -722,6 +740,10 @@ export class App implements OnInit {
       this.apiMessage.set('Debes iniciar sesion para reservar una maquina.');
       return;
     }
+    if (!this.fechaReservaPermitida()) {
+      this.apiMessage.set('No se pueden crear reservas en fechas anteriores a hoy.');
+      return;
+    }
     if (!this.horarioReservaValido()) {
       this.apiMessage.set('La hora de inicio debe ser menor que la hora de termino.');
       return;
@@ -745,6 +767,44 @@ export class App implements OnInit {
       },
       error: (error) => {
         this.apiMessage.set(this.extractError(error, 'No se pudo crear la reserva.'));
+      }
+    });
+  }
+
+  protected puedeCancelarReserva(reservation: Reserva): boolean {
+    return reservation.estado === 'activa' && reservation.fechaReserva >= this.todayIso;
+  }
+
+  protected cancelarReserva(reservation: Reserva): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para cancelar una reserva.');
+      return;
+    }
+
+    if (!this.puedeCancelarReserva(reservation)) {
+      this.apiMessage.set('Solo se pueden cancelar reservas activas desde hoy en adelante.');
+      return;
+    }
+
+    if (isPlatformBrowser(this.platformId) &&
+      !window.confirm(`Estas seguro de que quieres cancelar la reserva de ${reservation.nombreMaquina}?`)) {
+      return;
+    }
+
+    this.gymService.cancelarReserva(reservation.idReserva, { idUsuario: user.id }).subscribe({
+      next: (reservaCancelada) => {
+        this.reservations.update((reservations) =>
+          reservations.map((item) =>
+            item.idReserva === reservaCancelada.idReserva ? reservaCancelada : item
+          )
+        );
+        this.apiMessage.set('Reserva cancelada.');
+        this.loadActiveReservations();
+        this.loadReservations(user.id);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo cancelar la reserva.'));
       }
     });
   }
@@ -859,6 +919,18 @@ export class App implements OnInit {
     return this.horaEnMinutos(this.reservationForm.horaInicio) < this.horaEnMinutos(this.reservationForm.horaFin);
   }
 
+  private fechaReservaPermitida(): boolean {
+    return !this.reservationForm.fechaReserva || this.reservationForm.fechaReserva >= this.todayIso;
+  }
+
+  private getTodayIso(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   private horaEnMinutos(value: string): number {
     const [hours, minutes] = value.split(':').map(Number);
 
@@ -944,7 +1016,7 @@ export class App implements OnInit {
   }
 
   private loadActiveReservations(): void {
-    if (!this.reservationForm.fechaReserva) {
+    if (!this.reservationForm.fechaReserva || !this.fechaReservaPermitida()) {
       this.activeReservations.set([]);
       return;
     }
@@ -976,16 +1048,25 @@ export class App implements OnInit {
   }
 
   private extractError(error: HttpErrorResponse, fallback: string): string {
+    const normalize = (message: string): string => {
+      if (message.includes('reserva_cancelaciones') && message.includes("doesn't exist")) {
+        return 'Falta crear la tabla de cancelaciones. Ejecuta database.sql/AddReservaCancelaciones.sql y vuelve a intentar.';
+      }
+
+      const compactMessage = message.replace(/\s+/g, ' ').trim();
+      return compactMessage.length > 180 ? `${compactMessage.slice(0, 177)}...` : compactMessage;
+    };
+
     if (typeof error.error === 'string') {
-      return error.error;
+      return normalize(error.error);
     }
 
     if (error.error?.title) {
-      return error.error.title;
+      return normalize(error.error.title);
     }
 
     if (error.error?.detail) {
-      return error.error.detail;
+      return normalize(error.error.detail);
     }
 
     return fallback;

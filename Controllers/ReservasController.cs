@@ -39,8 +39,9 @@ public class ReservasController(
             return NotFound("Maquina no encontrada.");
         }
 
+        var fechaActual = DateOnly.FromDateTime(DateTime.Today);
         var reservasActivas = await reservaRepository.GetReservasActivasMaquinaAsync(request.IdMaquina, request.FechaReserva);
-        var error = reservaPolicyService.ValidarReserva(maquina, reservasActivas, request);
+        var error = reservaPolicyService.ValidarReserva(maquina, reservasActivas, request, fechaActual);
         if (error is not null)
         {
             return Conflict(error);
@@ -48,5 +49,28 @@ public class ReservasController(
 
         var reserva = await reservaRepository.CreateReservaAsync(request);
         return CreatedAtAction(nameof(GetReservasUsuario), new { idUsuario = request.IdUsuario }, reserva);
+    }
+
+    [HttpPost("{idReserva:int}/cancelar")]
+    public async Task<ActionResult<Reserva>> CancelarReserva(int idReserva, [FromBody] CancelarReservaRequest request)
+    {
+        if (request.IdUsuario <= 0)
+        {
+            return BadRequest("El usuario es obligatorio.");
+        }
+
+        var reserva = await reservaRepository.GetReservaAsync(idReserva);
+        if (reserva is null)
+        {
+            return NotFound("Reserva no encontrada.");
+        }
+
+        var error = reservaPolicyService.ValidarCancelacion(reserva, request.IdUsuario, DateOnly.FromDateTime(DateTime.Today));
+        if (error is not null)
+        {
+            return Conflict(error);
+        }
+
+        return Ok(await reservaRepository.CancelReservaAsync(reserva));
     }
 }

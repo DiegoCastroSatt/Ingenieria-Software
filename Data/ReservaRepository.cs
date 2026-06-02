@@ -92,6 +92,47 @@ public class ReservaRepository(MySqlDataSource dataSource)
         return await reader.ReadAsync() ? MapReserva(reader) : null;
     }
 
+    public async Task<Reserva> CancelReservaAsync(Reserva reserva)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+
+        await using (var updateCommand = connection.CreateCommand())
+        {
+            updateCommand.Transaction = transaction;
+            updateCommand.CommandText = """
+                UPDATE reservas
+                SET estado = 'cancelada'
+                WHERE id_reserva = @idReserva
+                  AND estado = 'activa';
+                """;
+            updateCommand.Parameters.AddWithValue("@idReserva", reserva.IdReserva);
+            var updatedRows = await updateCommand.ExecuteNonQueryAsync();
+            if (updatedRows != 1)
+            {
+                await transaction.RollbackAsync();
+                throw new InvalidOperationException("No se pudo cancelar la reserva.");
+            }
+        }
+
+        await using (var historyCommand = connection.CreateCommand())
+        {
+            historyCommand.Transaction = transaction;
+            historyCommand.CommandText = """
+                INSERT INTO reserva_cancelaciones (id_reserva, id_usuario, estado_anterior)
+                VALUES (@idReserva, @idUsuario, @estadoAnterior);
+                """;
+            historyCommand.Parameters.AddWithValue("@idReserva", reserva.IdReserva);
+            historyCommand.Parameters.AddWithValue("@idUsuario", reserva.IdUsuario);
+            historyCommand.Parameters.AddWithValue("@estadoAnterior", reserva.Estado);
+            await historyCommand.ExecuteNonQueryAsync();
+        }
+
+        await transaction.CommitAsync();
+        return await GetReservaAsync(reserva.IdReserva)
+            ?? throw new InvalidOperationException("No se pudo leer la reserva cancelada.");
+    }
+
     public async Task<IReadOnlyList<Reserva>> ListReservasUsuarioAsync(int idUsuario)
     {
         var reservas = new List<Reserva>();

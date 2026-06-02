@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS usuario_rutina;
 DROP TABLE IF EXISTS rutina_ejercicio;
 DROP TABLE IF EXISTS historial_imc;
 DROP TABLE IF EXISTS perfil_usuario;
+DROP TABLE IF EXISTS reserva_cancelaciones;
 DROP TABLE IF EXISTS reservas;
 DROP TABLE IF EXISTS mantenimientos;
 DROP TABLE IF EXISTS horarios;
@@ -163,6 +164,16 @@ CREATE TABLE reservas (
     fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_maquina) REFERENCES maquinas(id_maquina)
+);
+
+CREATE TABLE reserva_cancelaciones (
+    id_cancelacion INT AUTO_INCREMENT PRIMARY KEY,
+    id_reserva INT NOT NULL,
+    id_usuario INT NOT NULL,
+    estado_anterior ENUM('activa', 'cancelada', 'completada', 'no_asistio') NOT NULL,
+    fecha_cancelacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
 CREATE TABLE sesiones_entrenamiento (

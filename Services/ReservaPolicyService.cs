@@ -14,11 +14,16 @@ public class ReservaPolicyService
         return estadoMaquina is "disponible" or "ocupada";
     }
 
-    public string? ValidarReserva(Maquina maquina, IReadOnlyList<Reserva> reservasActivas, CrearReservaRequest request)
+    public string? ValidarReserva(Maquina maquina, IReadOnlyList<Reserva> reservasActivas, CrearReservaRequest request, DateOnly fechaActual)
     {
         if (!PermiteReservaSegunEstado(maquina.Estado))
         {
             return "La maquina no puede reservarse porque esta en mantencion o fuera de servicio.";
+        }
+
+        if (request.FechaReserva < fechaActual)
+        {
+            return "No se pueden crear reservas en fechas anteriores a hoy.";
         }
 
         if (request.HoraInicio >= request.HoraFin)
@@ -33,6 +38,26 @@ public class ReservaPolicyService
         if (conflicto)
         {
             return "Ya existe una reserva activa que se cruza con el horario solicitado.";
+        }
+
+        return null;
+    }
+
+    public string? ValidarCancelacion(Reserva reserva, int idUsuario, DateOnly fechaActual)
+    {
+        if (reserva.IdUsuario != idUsuario)
+        {
+            return "Solo puedes cancelar tus propias reservas.";
+        }
+
+        if (reserva.Estado != "activa")
+        {
+            return "Solo se pueden cancelar reservas activas.";
+        }
+
+        if (reserva.FechaReserva < fechaActual)
+        {
+            return "No se pueden cancelar reservas de fechas anteriores a hoy.";
         }
 
         return null;

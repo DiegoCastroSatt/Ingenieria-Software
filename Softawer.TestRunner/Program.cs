@@ -8,6 +8,8 @@ Run("BMI calculation and category mapping", TestImc);
 Run("Password hashing and verification", TestPasswordHashing);
 Run("Routine copy creates isolated editable clone", TestRoutineCopy);
 Run("Reservation overlap and machine-state validation", TestReservationPolicy);
+Run("Reservation date validation", TestReservationDatePolicy);
+Run("Reservation cancellation validation", TestReservationCancellationPolicy);
 Run("Workout session flow allows start, detail and completion", TestSesionFlow);
 
 if (failures.Count > 0)
@@ -44,10 +46,12 @@ void TestSchema()
     AssertContains(sql, "CREATE TABLE historial_imc");
     AssertContains(sql, "CREATE TABLE ejercicios");
     AssertContains(sql, "CREATE TABLE rutina_ejercicio");
+    AssertContains(sql, "CREATE TABLE reserva_cancelaciones");
     AssertContains(sql, "CREATE TABLE sesiones_entrenamiento");
     AssertContains(sql, "CREATE TABLE detalle_sesion_entrenamiento");
     AssertContains(sql, "FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)");
     AssertContains(sql, "FOREIGN KEY (id_maquina) REFERENCES maquinas(id_maquina)");
+    AssertContains(sql, "FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva)");
     AssertContains(sql, "FOREIGN KEY (id_rutina_origen) REFERENCES rutinas(id_rutina)");
 }
 
@@ -111,6 +115,7 @@ void TestReservationPolicy()
 {
     var service = new ReservaPolicyService();
     var maquina = new Maquina { Estado = "disponible" };
+    var today = DateOnly.FromDateTime(DateTime.Today);
     var reservas = new List<Reserva>
     {
         new()
@@ -123,24 +128,72 @@ void TestReservationPolicy()
 
     var ok = service.ValidarReserva(maquina, reservas, new CrearReservaRequest
     {
+        FechaReserva = today,
         HoraInicio = new TimeOnly(11, 0),
         HoraFin = new TimeOnly(12, 0)
-    });
+    }, today);
     AssertTrue(ok is null, "Una reserva sin cruce deberia permitirse.");
 
     var overlap = service.ValidarReserva(maquina, reservas, new CrearReservaRequest
     {
+        FechaReserva = today,
         HoraInicio = new TimeOnly(10, 30),
         HoraFin = new TimeOnly(11, 30)
-    });
+    }, today);
     AssertTrue(overlap is not null, "Una reserva traslapada debio rechazarse.");
 
     var machineState = service.ValidarReserva(new Maquina { Estado = "mantencion" }, [], new CrearReservaRequest
     {
+        FechaReserva = today,
         HoraInicio = new TimeOnly(12, 0),
         HoraFin = new TimeOnly(13, 0)
-    });
+    }, today);
     AssertTrue(machineState is not null, "Una maquina en mantencion debio rechazarse.");
+}
+
+void TestReservationDatePolicy()
+{
+    var service = new ReservaPolicyService();
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var maquina = new Maquina { Estado = "disponible" };
+
+    var past = service.ValidarReserva(maquina, [], new CrearReservaRequest
+    {
+        FechaReserva = today.AddDays(-1),
+        HoraInicio = new TimeOnly(12, 0),
+        HoraFin = new TimeOnly(13, 0)
+    }, today);
+    AssertTrue(past is not null, "Una reserva con fecha pasada debio rechazarse.");
+
+    var currentDate = service.ValidarReserva(maquina, [], new CrearReservaRequest
+    {
+        FechaReserva = today,
+        HoraInicio = new TimeOnly(12, 0),
+        HoraFin = new TimeOnly(13, 0)
+    }, today);
+    AssertTrue(currentDate is null, "Una reserva para hoy deberia permitirse.");
+}
+
+void TestReservationCancellationPolicy()
+{
+    var service = new ReservaPolicyService();
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var reserva = new Reserva
+    {
+        IdUsuario = 7,
+        Estado = "activa",
+        FechaReserva = today
+    };
+
+    AssertTrue(service.ValidarCancelacion(reserva, 7, today) is null, "El usuario duenio deberia poder cancelar una reserva activa de hoy.");
+    AssertTrue(service.ValidarCancelacion(reserva, 8, today) is not null, "Una reserva ajena debio rechazarse.");
+
+    reserva.Estado = "cancelada";
+    AssertTrue(service.ValidarCancelacion(reserva, 7, today) is not null, "Una reserva ya cancelada debio rechazarse.");
+
+    reserva.Estado = "activa";
+    reserva.FechaReserva = today.AddDays(-1);
+    AssertTrue(service.ValidarCancelacion(reserva, 7, today) is not null, "Una reserva pasada debio rechazarse al cancelar.");
 }
 
 void TestSesionFlow()

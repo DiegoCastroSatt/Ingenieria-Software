@@ -153,6 +153,10 @@ export type CrearReservaPayload = {
   horaFin: string;
 };
 
+export type CancelarReservaPayload = {
+  idUsuario: number;
+};
+
 export type Reserva = {
   idReserva: number;
   idUsuario: number;

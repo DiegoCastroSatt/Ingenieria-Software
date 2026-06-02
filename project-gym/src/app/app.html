@@ -341,7 +341,7 @@
           </select>
         </label>
         <div class="form-grid two">
-          <label>Fecha<input type="date" [(ngModel)]="reservationForm.fechaReserva" (ngModelChange)="onFechaReservaChange()" /></label>
+          <label>Fecha<input type="date" [(ngModel)]="reservationForm.fechaReserva" [min]="todayIso" (ngModelChange)="onFechaReservaChange()" /></label>
           <label>Inicio<input type="time" [(ngModel)]="reservationForm.horaInicio" /></label>
           <label>Fin<input type="time" [(ngModel)]="reservationForm.horaFin" /></label>
         </div>
@@ -372,6 +372,11 @@
           @for (reservation of reservations(); track reservation.idReserva) {
             <div class="reservation-row">
               <strong>{{ reservation.nombreMaquina }}</strong>
+              @if (puedeCancelarReserva(reservation)) {
+                <button class="secondary-action small cancel-reservation-action" type="button" (click)="cancelarReserva(reservation)">
+                  Cancelar
+                </button>
+              }
               <span>{{ reservation.fechaReserva }} · {{ reservation.horaInicio }} - {{ reservation.horaFin }}</span>
               <small>{{ reservation.estado }}</small>
             </div>
