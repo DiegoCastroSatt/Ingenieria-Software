@@ -1,4 +1,7 @@
+using System.Text;
 using MySqlConnector;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Softawer.Data;
 using Softawer.Services;
 
@@ -12,11 +15,16 @@ var connectionString = builder.Configuration.GetConnectionString("GymDb")
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? ["http://localhost:4200"];
 
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+    ?? throw new InvalidOperationException("JWT SecretKey was not configured.");
+
+// Servicios
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton(new MySqlDataSource(connectionString));
 
+// Repositorios
 builder.Services.AddScoped<UsuarioRepository>();
 builder.Services.AddScoped<PerfilUsuarioRepository>();
 builder.Services.AddScoped<DatabaseHealthRepository>();
@@ -25,12 +33,32 @@ builder.Services.AddScoped<RutinaRepository>();
 builder.Services.AddScoped<ReservaRepository>();
 builder.Services.AddScoped<SesionEntrenamientoRepository>();
 
+// Servicios de negocio
 builder.Services.AddSingleton<PasswordHashService>();
 builder.Services.AddSingleton<ImcService>();
 builder.Services.AddSingleton<ReservaPolicyService>();
 builder.Services.AddSingleton<RutinaCopyService>();
 builder.Services.AddSingleton<SesionEntrenamientoService>();
+builder.Services.AddSingleton<JwtService>();
 
+// Autenticación JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ValidateIssuer = true,
+            ValidIssuer = "Softawer",
+            ValidateAudience = true,
+            ValidAudience = "GymClient",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(CorsPolicyName, policy =>
@@ -50,6 +78,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(CorsPolicyName);
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
