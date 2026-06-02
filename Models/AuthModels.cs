@@ -29,4 +29,5 @@ public class AuthResponse
 {
     public string Message { get; set; } = string.Empty;
     public AuthUserResponse User { get; set; } = new();
+    public string Token { get; set; } = string.Empty;
 }
