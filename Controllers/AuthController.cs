@@ -8,7 +8,7 @@ namespace Softawer.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(UsuarioRepository usuarioRepository, PasswordHashService passwordHashService) : ControllerBase
+public class AuthController(UsuarioRepository usuarioRepository, PasswordHashService passwordHashService, JwtService jwtService) : ControllerBase
 {
     [HttpPost("login")]
     [HttpPost("/login")]
@@ -25,9 +25,12 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             return BadRequest("Usuario o contrasena incorrectos.");
         }
 
+        var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Rol);
+
         return Ok(new AuthResponse
         {
             Message = "Login correcto",
+            Token = token,
             User = new AuthUserResponse
             {
                 Id = usuario.IdUsuario,
@@ -64,9 +67,12 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             ContrasenaHash = passwordHashService.HashPassword(request.Password.Trim())
         });
 
+        var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Rol);
+
         return Ok(new AuthResponse
         {
             Message = "Usuario registrado correctamente.",
+            Token = token,
             User = new AuthUserResponse
             {
                 Id = usuario.IdUsuario,
