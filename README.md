@@ -77,9 +77,3 @@ a) Dado que el usuario ha iniciado sesión, cuando modifica su información pers
 
 a) Dado que el usuario ha iniciado sesión y visualiza una máquina disponible, cuando selecciona la opción “Añadir a favoritos”, entonces el sistema debe agregarla a su lista de favoritos.
 
-# C
-g
-## C
-d
-### C
-b
