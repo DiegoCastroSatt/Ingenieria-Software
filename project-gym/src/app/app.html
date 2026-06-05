@@ -24,7 +24,7 @@
           <a href="#inicio">Inicio</a>
           <a href="#maquinas">Disponibilidad</a>
           <a href="#rutinas">Rutinas</a>
-          <a href="#perfil">Perfil IMC</a>
+          <a (click)="navegarAPerfil()" style="cursor: pointer;">Perfil</a>
           <a href="#reservas">Reservas</a>
           <a href="#seguimiento">Seguimiento</a>
           <a href="#historial">Historial</a>
@@ -273,69 +273,6 @@
       </div>
     </section>
 
-    <section id="perfil" class="section-band two-column">
-      <article class="panel">
-        <div class="section-heading compact">
-          <p class="eyebrow">Perfil fisico</p>
-          <h2>IMC y recomendaciones</h2>
-          <p>Calcula IMC, guarda historial y consulta rutinas recomendadas.</p>
-        </div>
-
-        <div class="form-grid">
-          <label>Fecha nacimiento<input type="date" [(ngModel)]="bmiForm.fechaNacimiento" /></label>
-          <label>Sexo
-            <select [(ngModel)]="bmiForm.sexo">
-              <option value="masculino">Masculino</option>
-              <option value="femenino">Femenino</option>
-              <option value="otro">Otro</option>
-            </select>
-          </label>
-          <label>Altura cm<input type="number" [(ngModel)]="bmiForm.alturaCm" /></label>
-          <label>Peso kg<input type="number" [(ngModel)]="bmiForm.pesoKg" /></label>
-          <label>Objetivo<input type="text" [(ngModel)]="bmiForm.objetivo" /></label>
-          <label>Nivel actividad
-            <select [(ngModel)]="bmiForm.nivelActividad">
-              <option value="bajo">Bajo</option>
-              <option value="medio">Medio</option>
-              <option value="alto">Alto</option>
-            </select>
-          </label>
-        </div>
-
-        <button class="primary-action full" type="button" (click)="guardarPerfilYCalcularImc()">
-          Guardar y calcular IMC
-        </button>
-
-        @if (bmiResult(); as bmi) {
-          <div class="result-panel">
-            <span>IMC calculado</span>
-            <strong>{{ bmi.imc }} · {{ bmi.categoriaImc }}</strong>
-          </div>
-        }
-      </article>
-
-      <article class="panel">
-        <div class="section-heading compact">
-          <p class="eyebrow">Recomendaciones</p>
-          <h2>Segun categoria IMC</h2>
-          <p>La recomendacion orienta, pero el usuario puede elegir otras rutinas.</p>
-        </div>
-
-        @if (recommendedRoutines().length === 0) {
-          <div class="empty-state">Aun no hay recomendaciones para mostrar.</div>
-        } @else {
-          @for (routine of recommendedRoutines(); track routine.idRutina) {
-            <div class="recommendation-row">
-              <div>
-                <strong>{{ routine.nombre }}</strong>
-                <span>{{ routine.descripcion }}</span>
-              </div>
-              <button class="secondary-action small" type="button" (click)="copiarRutina(routine.idRutina)">Copiar</button>
-            </div>
-          }
-        }
-      </article>
-    </section>
 
     <section id="reservas" class="section-band two-column">
       <article class="panel">

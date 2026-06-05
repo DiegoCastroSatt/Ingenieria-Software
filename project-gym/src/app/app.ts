@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   ActualizarPerfilImcPayload,
@@ -45,6 +46,7 @@ export class App implements OnInit {
   private readonly gymService = inject(GymService);
   private readonly authService = inject(AuthService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
 
   protected readonly title = signal('project-gym');
   protected readonly menuOpen = signal(false);
@@ -622,8 +624,7 @@ export class App implements OnInit {
 
   protected navegarAPerfil(): void {
     this.userMenuOpen.set(false);
-    const element = document.querySelector('#perfil');
-    element?.scrollIntoView({ behavior: 'smooth' });
+    this.router.navigate(['/perfil']);
   }
 
   protected navegarAProgreso(): void {
