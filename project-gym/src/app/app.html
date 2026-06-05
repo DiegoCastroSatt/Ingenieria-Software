@@ -35,9 +35,27 @@
       </div>
 
       @if (currentUser()) {
-        <button class="session-pill" type="button" (click)="cerrarSesion()">
-          {{ currentUser()!.nombre }}
-        </button>
+        <div class="user-menu-wrapper">
+          <button class="user-menu-button" type="button" [class.open]="userMenuOpen()" (click)="toggleUserMenu()">
+            {{ currentUser()!.nombre }}
+            <span aria-hidden="true">▾</span>
+          </button>
+
+          <div class="user-dropdown" [class.show]="userMenuOpen()">
+            <button type="button" class="user-menu-item" (click)="navegarAPerfil()">
+              <span>Perfil</span>
+              <small>Editar información personal</small>
+            </button>
+            <button type="button" class="user-menu-item" (click)="navegarAProgreso()">
+              <span>Progreso</span>
+              <small>Ver historial de entrenamientos</small>
+            </button>
+            <hr class="menu-divider" />
+            <button type="button" class="user-menu-item danger" (click)="cerrarSesion()">
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
       } @else {
         <button class="session-pill" type="button" (click)="abrirLogin()">Iniciar sesion</button>
       }
