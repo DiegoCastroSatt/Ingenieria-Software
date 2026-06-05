@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
+import { App } from './app';
+import { Perfil } from './pages/perfil/perfil';
 
 export const routes: Routes = [
-  //{ path: '', component: LoginComponent },
-  //{ path: 'registro', component: RegistroComponent },
-  //{ path: 'home', component: HomeComponent }
+  { path: 'perfil', component: Perfil },
+  { path: '', component: App }  // Ruta por defecto para mostrar el componente principal
 ];
