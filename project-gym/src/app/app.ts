@@ -48,6 +48,7 @@ export class App implements OnInit {
 
   protected readonly title = signal('project-gym');
   protected readonly menuOpen = signal(false);
+  protected readonly userMenuOpen = signal(false);
   protected readonly loginModalOpen = signal(false);
   protected readonly registerModalOpen = signal(false);
   protected readonly loginError = signal('');
@@ -456,6 +457,10 @@ export class App implements OnInit {
       this.menuOpen.set(false);
     }
 
+    if (!target?.closest('.user-menu-wrapper')) {
+      this.userMenuOpen.set(false);
+    }
+
     if (target?.classList.contains('modal-overlay')) {
       if (target.classList.contains('login-overlay')) {
         this.cerrarLogin();
@@ -603,7 +608,28 @@ export class App implements OnInit {
     this.reservations.set([]);
     this.currentSession.set(null);
     this.workoutHistory.set([]);
+    this.userMenuOpen.set(false);
     this.apiMessage.set('Sesion cerrada.');
+  }
+
+  protected toggleUserMenu(): void {
+    this.userMenuOpen.update((value) => !value);
+  }
+
+  protected cerrarMenuUsuario(): void {
+    this.userMenuOpen.set(false);
+  }
+
+  protected navegarAPerfil(): void {
+    this.userMenuOpen.set(false);
+    const element = document.querySelector('#perfil');
+    element?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  protected navegarAProgreso(): void {
+    this.userMenuOpen.set(false);
+    const element = document.querySelector('#historial');
+    element?.scrollIntoView({ behavior: 'smooth' });
   }
 
   protected intentarLogin(): void {
