@@ -1,0 +1,186 @@
+<div class="perfil-page">
+  <header class="page-header">
+    <button class="back-button" type="button" (click)="volverAlInicio()">
+      ← Volver al inicio
+    </button>
+    <h1>Perfil de Usuario</h1>
+  </header>
+
+  <main class="perfil-content">
+    <!-- Sección de Información Pública -->
+    <section class="section-band full-width">
+      <article class="panel full-panel">
+        <div class="section-heading compact">
+          <p class="eyebrow">Información Pública</p>
+          <h2>Datos de Perfil Público</h2>
+          <p>Configura cómo te verán otros usuarios en la plataforma.</p>
+        </div>
+
+        <div class="form-grid public-info-grid">
+          <!-- Alias -->
+          <label class="full-width-field">
+            Alias
+            <input type="text" [(ngModel)]="publicInfoForm.alias" placeholder="Tu alias público" />
+          </label>
+
+          <!-- Avatar -->
+          <label class="full-width-field">
+            Avatar
+            <span class="field-hint">Si el avatar es considerado ofensivo o inapropiado será eliminado.</span>
+            <div class="avatar-options">
+              <label class="radio-option">
+                <input type="radio" name="avatarOption" value="ninguno" [(ngModel)]="publicInfoForm.avatarOption" />
+                <span>Ninguno</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="avatarOption" value="foto_oficial" [(ngModel)]="publicInfoForm.avatarOption" />
+                <span>Usar mi Foto Oficial</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="avatarOption" value="actual" [(ngModel)]="publicInfoForm.avatarOption" />
+                <span>Actual</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="avatarOption" value="personalizado" [(ngModel)]="publicInfoForm.avatarOption" />
+                <span>Personalizado...</span>
+              </label>
+            </div>
+            @if (publicInfoForm.avatarOption === 'personalizado') {
+              <input type="url" [(ngModel)]="publicInfoForm.customAvatarUrl" placeholder="https://ejemplo.com/avatar.jpg" class="custom-avatar-input" />
+            }
+          </label>
+
+          <!-- Teléfono Trabajo -->
+          <label>
+            Teléfono Trabajo
+            <input type="tel" [(ngModel)]="publicInfoForm.telefonoTrabajo" placeholder="+56 2 ..." />
+          </label>
+
+          <!-- Email Trabajo -->
+          <label>
+            Email Trabajo
+            <input type="email" [(ngModel)]="publicInfoForm.emailTrabajo" placeholder="tu.email@ejemplo.com" />
+          </label>
+
+          <!-- Sitio Personal -->
+          <label>
+            Sitio Personal
+            <input type="url" [(ngModel)]="publicInfoForm.sitioPersonal" placeholder="http://" />
+          </label>
+
+          <!-- X / Twitter -->
+          <label>
+            X / Twitter
+            <input type="text" [(ngModel)]="publicInfoForm.twitter" placeholder="@tu_usuario" />
+          </label>
+        </div>
+
+        <button class="primary-action full" type="button" (click)="guardarInformacionPublica()">
+          Guardar Información Pública
+        </button>
+      </article>
+    </section>
+
+    <!-- Sección de Perfil Físico (existente) -->
+    <section class="section-band two-column">
+      <article class="panel">
+        <div class="section-heading compact">
+          <p class="eyebrow">Perfil fisico</p>
+          <h2>IMC y recomendaciones</h2>
+          <p>Calcula IMC, guarda historial y consulta rutinas recomendadas.</p>
+        </div>
+
+        <div class="form-grid">
+          <label>Fecha nacimiento<input type="date" [(ngModel)]="bmiForm.fechaNacimiento" /></label>
+          <label>Sexo
+            <select [(ngModel)]="bmiForm.sexo">
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
+            </select>
+          </label>
+          <label>Altura cm<input type="number" [(ngModel)]="bmiForm.alturaCm" /></label>
+          <label>Peso kg<input type="number" [(ngModel)]="bmiForm.pesoKg" /></label>
+          <label>Objetivo<input type="text" [(ngModel)]="bmiForm.objetivo" /></label>
+          <label>Nivel actividad
+            <select [(ngModel)]="bmiForm.nivelActividad">
+              <option value="bajo">Bajo</option>
+              <option value="medio">Medio</option>
+              <option value="alto">Alto</option>
+            </select>
+          </label>
+        </div>
+
+        <button class="primary-action full" type="button" (click)="guardarPerfilYCalcularImc()">
+          Guardar y calcular IMC
+        </button>
+
+        @if (bmiResult(); as bmi) {
+          <div class="result-panel">
+            <span>IMC calculado</span>
+            <strong>{{ bmi.imc }} · {{ bmi.categoriaImc }}</strong>
+          </div>
+        }
+
+        <div class="history-panel">
+          <h3>IMC calculado previamente</h3>
+          @if (bmiHistory().length === 0) {
+            <div class="empty-state compact">Aun no hay calculos guardados.</div>
+          } @else {
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>IMC</th>
+                    <th>Categoria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (entry of bmiHistory(); track entry.idImc) {
+                    <tr>
+                      <td>{{ entry.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ entry.imc }}</td>
+                      <td>{{ entry.categoriaImc }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="section-heading compact">
+          <p class="eyebrow">Recomendaciones</p>
+          <h2>Segun categoria IMC</h2>
+          <p>La recomendacion orienta, pero el usuario puede elegir otras rutinas.</p>
+        </div>
+
+        @if (recommendedRoutines().length === 0) {
+          <div class="empty-state">Aun no hay recomendaciones para mostrar.</div>
+        } @else {
+          @for (routine of recommendedRoutines(); track routine.idRutina) {
+            <div class="recommendation-row">
+              <div>
+                <strong>{{ routine.nombre }}</strong>
+                <span>{{ routine.descripcion }}</span>
+              </div>
+              <button class="secondary-action small" type="button" (click)="copiarRutina(routine.idRutina)">Copiar</button>
+            </div>
+          }
+        }
+      </article>
+    </section>
+
+    @if (apiMessage()) {
+      <div class="api-message">{{ apiMessage() }}</div>
+    }
+  </main>
+
+  <footer class="footer">
+    <span>GymApp 2026</span>
+    <span>Perfil de usuario</span>
+  </footer>
+</div>
