@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { enviroment } from '../../../enviroments/enviroment';
 import {
   ActualizarPerfilImcPayload,
+  ActualizarInformacionPublicaPayload,
   AgregarDetalleSesionPayload,
   CancelarReservaPayload,
   CompletarSesionPayload,
@@ -114,5 +115,9 @@ export class GymService {
 
   getHistorial(idUsuario: number): Observable<SesionHistorial[]> {
     return this.http.get<SesionHistorial[]>(`${this.apiUrl}/sesiones/usuario/${idUsuario}/historial`);
+  }
+
+  actualizarInformacionPublica(idUsuario: number, payload: ActualizarInformacionPublicaPayload): Observable<any> {
+    return this.http.put(`${this.apiUrl}/perfiles/${idUsuario}/informacion-publica`, payload);
   }
 }

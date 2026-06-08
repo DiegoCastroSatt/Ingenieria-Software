@@ -1,4 +1,5 @@
 <div class="app-shell">
+  @if (!isPerfilRoute()) {
   <header class="topbar">
     <a class="brand" href="#inicio" aria-label="Ir al inicio">
       <img class="brand-mark" src="logo.png" alt="" />
@@ -61,7 +62,9 @@
       }
     </div>
   </header>
+  }
 
+  @if (!isPerfilRoute()) {
   <main id="inicio">
     <section class="hero-panel">
       <div class="hero-content">
@@ -431,12 +434,20 @@
       </div>
     </section>
   </main>
+  }
 
+  @if (!isPerfilRoute()) {
   <footer class="footer">
     <span>GymApp 2026</span>
     <span>Interfaz basada en flujos de autenticacion, reservas y rutinas</span>
   </footer>
+  }
 
+  @if (isPerfilRoute()) {
+  <router-outlet></router-outlet>
+  }
+
+  @if (!isPerfilRoute()) {
   <div class="modal-overlay login-overlay" [class.show]="loginModalOpen()">
     <section class="modal">
       <button class="modal-close" type="button" (click)="cerrarLogin()">×</button>
@@ -475,4 +486,5 @@
       }
     </section>
   </div>
+  }
 </div>

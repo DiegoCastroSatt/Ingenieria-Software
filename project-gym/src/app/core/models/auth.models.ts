@@ -89,6 +89,15 @@ export type ActualizarPerfilImcPayload = {
   nivelActividad?: string | null;
 };
 
+export type ActualizarInformacionPublicaPayload = {
+  alias?: string | null;
+  avatarUrl?: string | null;
+  telefonoTrabajo?: string | null;
+  emailTrabajo?: string | null;
+  sitioPersonal?: string | null;
+  twitter?: string | null;
+};
+
 export type PerfilUsuario = {
   idPerfil: number;
   idUsuario: number;
@@ -98,6 +107,12 @@ export type PerfilUsuario = {
   pesoKg?: number | null;
   objetivo?: string | null;
   nivelActividad?: string | null;
+  alias?: string | null;
+  avatarUrl?: string | null;
+  telefonoTrabajo?: string | null;
+  emailTrabajo?: string | null;
+  sitioPersonal?: string | null;
+  twitter?: string | null;
   fechaActualizacion: string;
 };
 

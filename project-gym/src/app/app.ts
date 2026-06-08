@@ -1,8 +1,9 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser, NgIf } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal, computed } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
@@ -38,7 +39,7 @@ type ExerciseWithImage = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterOutlet, NgIf],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -49,6 +50,17 @@ export class App implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly title = signal('project-gym');
+  protected readonly isPerfilRoute = signal(false);
+
+  constructor() {
+    // Escuchar cambios de ruta para saber si estamos en perfil
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil');
+    });
+  }
+
   protected readonly menuOpen = signal(false);
   protected readonly userMenuOpen = signal(false);
   protected readonly loginModalOpen = signal(false);

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { GymService } from '../../core/services/gym-data.service';
-import { ActualizarPerfilImcPayload, ImcRecommendationResponse, RutinaResumen } from '../../core/models/auth.models';
+import { ActualizarPerfilImcPayload, ActualizarInformacionPublicaPayload, ImcRecommendationResponse, RutinaResumen } from '../../core/models/auth.models';
 
 @Component({
   selector: 'app-perfil',
@@ -56,9 +56,41 @@ export class Perfil {
       return;
     }
 
-    // Aquí se enviaría la información pública al backend
-    // Por ahora, solo mostramos un mensaje de éxito
-    this.apiMessage.set('Información pública actualizada correctamente.');
+    const payload: ActualizarInformacionPublicaPayload = {
+      alias: this.publicInfoForm.alias || null,
+      avatarUrl: this.getAvatarUrl(),
+      telefonoTrabajo: this.publicInfoForm.telefonoTrabajo || null,
+      emailTrabajo: this.publicInfoForm.emailTrabajo || null,
+      sitioPersonal: this.publicInfoForm.sitioPersonal || null,
+      twitter: this.publicInfoForm.twitter || null
+    };
+
+    this.gymService.actualizarInformacionPublica(user.id, payload).subscribe({
+      next: () => {
+        this.apiMessage.set('Información pública actualizada correctamente.');
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo actualizar la información pública.'));
+      }
+    });
+  }
+
+  private getAvatarUrl(): string | null {
+    const option = this.publicInfoForm.avatarOption;
+    switch (option) {
+      case 'ninguno':
+        return null;
+      case 'foto_oficial':
+        // Aquí se podría usar la foto oficial del usuario si estuviera disponible
+        return null;
+      case 'actual':
+        // Aquí se podría usar el avatar actual
+        return null;
+      case 'personalizado':
+        return this.publicInfoForm.customAvatarUrl || null;
+      default:
+        return null;
+    }
   }
 
   protected guardarPerfilYCalcularImc(): void {
