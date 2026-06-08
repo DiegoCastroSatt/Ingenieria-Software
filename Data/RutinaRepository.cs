@@ -32,7 +32,8 @@ public class RutinaRepository(MySqlDataSource dataSource)
         return await ListRutinasAsync("""
             SELECT id_rutina, id_usuario, nombre, descripcion, tipo_rutina, objetivo, categoria_imc, dificultad, es_publica, id_rutina_origen
             FROM rutinas
-            WHERE id_usuario = @idUsuario OR (id_usuario IS NULL AND tipo_rutina = 'predefinida' AND es_publica = TRUE)
+            WHERE id_usuario = @idUsuario
+              AND tipo_rutina IN ('personalizada', 'copiada')
             ORDER BY nombre;
             """, command => command.Parameters.AddWithValue("@idUsuario", idUsuario));
     }
@@ -176,9 +177,10 @@ public class RutinaRepository(MySqlDataSource dataSource)
 
     public async Task<bool> DeleteRutinaAsync(int idRutina, int idUsuario)
     {
-        if (!await UsuarioPuedeEditarRutinaAsync(idRutina, idUsuario))
+        var puedeEditar = await UsuarioPuedeEditarRutinaAsync(idRutina, idUsuario);
+        if (!puedeEditar)
         {
-            return false;
+            return await DeleteUsuarioRutinaAsync(idRutina, idUsuario);
         }
 
         await using var connection = await dataSource.OpenConnectionAsync();
@@ -242,6 +244,21 @@ public class RutinaRepository(MySqlDataSource dataSource)
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    private async Task<bool> DeleteUsuarioRutinaAsync(int idRutina, int idUsuario)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            DELETE FROM usuario_rutina
+            WHERE id_rutina = @idRutina
+              AND id_usuario = @idUsuario;
+            """;
+        command.Parameters.AddWithValue("@idRutina", idRutina);
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        var affectedRows = await command.ExecuteNonQueryAsync();
+        return affectedRows > 0;
     }
 
     public async Task<bool> UsuarioPuedeEditarRutinaAsync(int idRutina, int idUsuario)

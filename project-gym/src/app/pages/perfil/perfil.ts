@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { GymService } from '../../core/services/gym-data.service';
-import { ActualizarPerfilImcPayload, ActualizarInformacionPublicaPayload, ImcRecommendationResponse, RutinaResumen } from '../../core/models/auth.models';
+import { ActualizarPerfilImcPayload, ActualizarInformacionPublicaPayload, HistorialImc, ImcRecommendationResponse, PerfilUsuario, RutinaResumen } from '../../core/models/auth.models';
 
 @Component({
   selector: 'app-perfil',
@@ -20,6 +20,7 @@ export class Perfil {
 
   ngOnInit(): void {
     console.log('Perfil component initialized');
+    this.loadPerfil();
   }
   private readonly gymService = inject(GymService);
   private readonly authService = inject(AuthService);
@@ -28,6 +29,7 @@ export class Perfil {
   protected readonly currentUser = this.authService.currentUser;
   protected readonly apiMessage = signal('');
   protected readonly bmiResult = signal<ImcRecommendationResponse | null>(null);
+  protected readonly bmiHistory = signal<HistorialImc[]>([]);
   protected readonly recommendedRoutines = signal<RutinaResumen[]>([]);
 
   protected bmiForm = {
@@ -66,7 +68,8 @@ export class Perfil {
     };
 
     this.gymService.actualizarInformacionPublica(user.id, payload).subscribe({
-      next: () => {
+      next: (perfil) => {
+        this.patchFormsFromPerfil(perfil);
         this.apiMessage.set('Información pública actualizada correctamente.');
       },
       error: (error) => {
@@ -111,8 +114,10 @@ export class Perfil {
 
     this.gymService.calcularImc(user.id, payload).subscribe({
       next: (response) => {
+        this.patchFormsFromPerfil(response.perfil);
         this.bmiResult.set(response);
         this.recommendedRoutines.set(response.rutinasRecomendadas);
+        this.loadHistorialImc();
         this.apiMessage.set(`IMC calculado: ${response.imc} (${response.categoriaImc}).`);
       },
       error: (error) => {
@@ -147,5 +152,60 @@ export class Perfil {
 
   protected volverAlInicio(): void {
     this.router.navigate(['/']);
+  }
+
+  private loadPerfil(): void {
+    const user = this.currentUser();
+    if (!user) {
+      return;
+    }
+
+    this.loadHistorialImc();
+    this.gymService.getPerfil(user.id).subscribe({
+      next: (perfil) => {
+        this.patchFormsFromPerfil(perfil);
+      },
+      error: () => {
+        this.apiMessage.set('');
+      }
+    });
+  }
+
+  private loadHistorialImc(): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.bmiHistory.set([]);
+      return;
+    }
+
+    this.gymService.getHistorialImc(user.id).subscribe({
+      next: (history) => {
+        this.bmiHistory.set(history);
+      },
+      error: () => {
+        this.bmiHistory.set([]);
+      }
+    });
+  }
+
+  private patchFormsFromPerfil(perfil: PerfilUsuario): void {
+    this.bmiForm = {
+      fechaNacimiento: perfil.fechaNacimiento ?? '',
+      sexo: perfil.sexo ?? 'masculino',
+      alturaCm: perfil.alturaCm ?? 175,
+      pesoKg: perfil.pesoKg ?? 75,
+      objetivo: perfil.objetivo ?? 'ganar_fuerza',
+      nivelActividad: perfil.nivelActividad ?? 'medio'
+    };
+
+    this.publicInfoForm = {
+      alias: perfil.alias ?? '',
+      avatarOption: perfil.avatarUrl ? 'personalizado' : 'ninguno',
+      customAvatarUrl: perfil.avatarUrl ?? '',
+      telefonoTrabajo: perfil.telefonoTrabajo ?? '',
+      emailTrabajo: perfil.emailTrabajo ?? '',
+      sitioPersonal: perfil.sitioPersonal ?? '',
+      twitter: perfil.twitter ?? ''
+    };
   }
 }

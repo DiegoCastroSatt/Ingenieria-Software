@@ -116,6 +116,16 @@ export type PerfilUsuario = {
   fechaActualizacion: string;
 };
 
+export type HistorialImc = {
+  idImc: number;
+  idUsuario: number;
+  alturaCm: number;
+  pesoKg: number;
+  imc: number;
+  categoriaImc: string;
+  fechaRegistro: string;
+};
+
 export type ImcRecommendationResponse = {
   idUsuario: number;
   imc: number;

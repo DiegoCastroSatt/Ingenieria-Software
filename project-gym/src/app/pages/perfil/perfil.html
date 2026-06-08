@@ -121,6 +121,34 @@
             <strong>{{ bmi.imc }} · {{ bmi.categoriaImc }}</strong>
           </div>
         }
+
+        <div class="history-panel">
+          <h3>IMC calculado previamente</h3>
+          @if (bmiHistory().length === 0) {
+            <div class="empty-state compact">Aun no hay calculos guardados.</div>
+          } @else {
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>IMC</th>
+                    <th>Categoria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (entry of bmiHistory(); track entry.idImc) {
+                    <tr>
+                      <td>{{ entry.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ entry.imc }}</td>
+                      <td>{{ entry.categoriaImc }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
       </article>
 
       <article class="panel">

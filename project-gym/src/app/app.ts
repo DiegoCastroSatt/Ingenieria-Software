@@ -773,6 +773,11 @@ export class App implements OnInit {
     });
   }
 
+  protected canDeleteRoutine(routine: RutinaResumen): boolean {
+    const user = this.currentUser();
+    return !!user && routine.idUsuario === user.id && routine.tipoRutina !== 'predefinida';
+  }
+
   protected crearReserva(): void {
     const user = this.currentUser();
     if (!user) {
@@ -1029,7 +1034,7 @@ export class App implements OnInit {
     this.gymService.getRutinasUsuario(idUsuario).subscribe({
       next: (routines) => {
         console.log('Loaded user routines:', routines);
-        this.userRoutines.set(routines.filter((routine) => routine.idUsuario === idUsuario));
+        this.userRoutines.set(routines);
         if (!this.sessionForm.idRutina && routines.length > 0) {
           this.sessionForm.idRutina = routines[0].idRutina;
         }

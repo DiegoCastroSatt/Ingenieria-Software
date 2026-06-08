@@ -15,9 +15,11 @@ import {
   EditarRutinaPayload,
   Ejercicio,
   HealthResponse,
+  HistorialImc,
   ImcRecommendationResponse,
   IniciarSesionPayload,
   Maquina,
+  PerfilUsuario,
   Reserva,
   RutinaDetalle,
   RutinaResumen,
@@ -51,6 +53,14 @@ export class GymService {
 
   getRecomendaciones(idUsuario: number): Observable<RutinaResumen[]> {
     return this.http.get<RutinaResumen[]>(`${this.apiUrl}/perfiles/${idUsuario}/recomendaciones`);
+  }
+
+  getPerfil(idUsuario: number): Observable<PerfilUsuario> {
+    return this.http.get<PerfilUsuario>(`${this.apiUrl}/perfiles/${idUsuario}`);
+  }
+
+  getHistorialImc(idUsuario: number): Observable<HistorialImc[]> {
+    return this.http.get<HistorialImc[]>(`${this.apiUrl}/perfiles/${idUsuario}/historial-imc`);
   }
 
   getRutinasPredefinidas(): Observable<RutinaResumen[]> {
@@ -117,7 +127,7 @@ export class GymService {
     return this.http.get<SesionHistorial[]>(`${this.apiUrl}/sesiones/usuario/${idUsuario}/historial`);
   }
 
-  actualizarInformacionPublica(idUsuario: number, payload: ActualizarInformacionPublicaPayload): Observable<any> {
-    return this.http.put(`${this.apiUrl}/perfiles/${idUsuario}/informacion-publica`, payload);
+  actualizarInformacionPublica(idUsuario: number, payload: ActualizarInformacionPublicaPayload): Observable<PerfilUsuario> {
+    return this.http.put<PerfilUsuario>(`${this.apiUrl}/perfiles/${idUsuario}/informacion-publica`, payload);
   }
 }

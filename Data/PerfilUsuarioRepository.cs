@@ -97,6 +97,28 @@ public class PerfilUsuarioRepository(MySqlDataSource dataSource)
         return await reader.ReadAsync() ? MapImc(reader) : null;
     }
 
+    public async Task<IReadOnlyList<HistorialImc>> ListHistorialImcUsuarioAsync(int idUsuario)
+    {
+        var historial = new List<HistorialImc>();
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id_imc, id_usuario, altura_cm, peso_kg, imc, categoria_imc, fecha_registro
+            FROM historial_imc
+            WHERE id_usuario = @idUsuario
+            ORDER BY fecha_registro DESC, id_imc DESC;
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            historial.Add(MapImc(reader));
+        }
+
+        return historial;
+    }
+
     public async Task<string?> GetCategoriaImcActualAsync(int idUsuario)
     {
         await using var connection = await dataSource.OpenConnectionAsync();

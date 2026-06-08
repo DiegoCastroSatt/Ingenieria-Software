@@ -266,9 +266,11 @@
                   <span>{{ routine.nombre }}</span>
                   <small>{{ routine.tipoRutina }}</small>
                 </div>
-                <button class="trash-action" type="button" (click)="eliminarRutina(routine)" title="Eliminar rutina" aria-label="Eliminar rutina {{ routine.nombre }}">
-                  🗑
-                </button>
+                @if (canDeleteRoutine(routine)) {
+                  <button class="trash-action" type="button" (click)="eliminarRutina(routine)" title="Eliminar rutina" aria-label="Eliminar rutina {{ routine.nombre }}">
+                    🗑
+                  </button>
+                }
               </div>
             }
           }
