@@ -4,6 +4,23 @@ namespace Softawer.Data;
 
 public class DatabaseSchemaInitializer(MySqlDataSource dataSource)
 {
+    public async Task EnsureUsuarioMaquinaFavoritaAsync()
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS usuario_maquina_favorita (
+                id_usuario INT NOT NULL,
+                id_maquina INT NOT NULL,
+                fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id_usuario, id_maquina),
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+                FOREIGN KEY (id_maquina) REFERENCES maquinas(id_maquina)
+            );
+            """;
+        await command.ExecuteNonQueryAsync();
+    }
+
     public async Task EnsureReservaCancelacionesAsync()
     {
         await using var connection = await dataSource.OpenConnectionAsync();

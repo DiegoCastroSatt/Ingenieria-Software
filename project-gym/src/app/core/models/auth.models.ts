@@ -37,6 +37,10 @@ export type Maquina = {
   cantidad: number;
 };
 
+export type MaquinaFavoritaPayload = {
+  idUsuario: number;
+};
+
 export type Ejercicio = {
   idEjercicio: number;
   nombre: string;

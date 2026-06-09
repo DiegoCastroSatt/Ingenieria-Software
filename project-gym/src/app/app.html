@@ -113,12 +113,95 @@
         <p>El usuario consulta maquinas disponibles; el frontend muestra ubicacion, estado y senales de mantenimiento.</p>
       </div>
 
+      <div class="favorites-block">
+        <button
+          class="favorites-toggle"
+          type="button"
+          (click)="toggleFavoriteMachinesSection()"
+          [attr.aria-expanded]="favoriteMachinesOpen()"
+          aria-controls="favorite-machines-panel"
+        >
+          <span>
+            <small class="eyebrow">Favoritas</small>
+            <strong>Mis maquinas favoritas</strong>
+          </span>
+          <b [class.open]="favoriteMachinesOpen()">▸</b>
+        </button>
+
+        @if (favoriteMachinesOpen()) {
+          <div id="favorite-machines-panel" class="favorites-panel">
+            @if (!currentUser()) {
+              <div class="empty-state">Inicia sesion para guardar maquinas favoritas.</div>
+            } @else if (favoriteMachines().length === 0) {
+              <div class="empty-state">Aun no tienes maquinas favoritas.</div>
+            } @else {
+              <div class="machine-grid favorite-machine-grid">
+                @for (machine of favoriteMachines(); track machine.idMaquina) {
+                  <article class="machine-card">
+                    <button
+                      class="favorite-action active"
+                      type="button"
+                      (click)="toggleMaquinaFavorita(machine)"
+                      title="Quitar de favoritas"
+                      aria-label="Quitar {{ machine.nombre }} de favoritas"
+                    >
+                      ★
+                    </button>
+                    @if (machine.estado === 'mantencion') {
+                      <p class="machine-unavailable">Temporalmente fuera de servicio</p>}
+                    @if (machine.imagenUrl) {
+                      <img class="machine-photo" [src]="machine.imagenUrl" [alt]="machine.nombre" loading="lazy" />
+                    }
+                    <div>
+                      <div class="machine-title-row">
+                        <span class="status-dot" [class.available]="machine.estado === 'disponible'" [class.warning]="machine.estado === 'mantencion'" [class.blocked]="machine.estado === 'fuera_servicio' || machine.estado === 'ocupada'"></span>
+                        <details class="machine-info">
+                          <summary aria-label="Ver informacion de {{ machine.nombre }}">i</summary>
+                          <div class="info-popover">
+                            <strong>Musculos objetivo</strong>
+                            <p>{{ machine.musculosObjetivo || 'Sin informacion registrada.' }}</p>
+                            <strong>Uso recomendado</strong>
+                            <p>{{ machine.descripcion }}</p>
+                          </div>
+                        </details>
+                      </div>
+                      <h3>{{ machine.nombre }}</h3>
+                      <p>{{ machine.descripcion || 'Sin descripcion registrada.' }}</p>
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Ubicacion</dt>
+                        <dd>{{ machine.ubicacion || 'Sin ubicacion' }}</dd>
+                      </div>
+                      <div>
+                        <dt>Estado</dt>
+                        <dd>{{ machine.estado }}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
       <div class="machine-grid">
         @if (machines().length === 0) {
           <div class="empty-state">No hay maquinas cargadas o el backend no esta disponible.</div>
         } @else {
           @for (machine of machines(); track machine.idMaquina) {
             <article class="machine-card">
+              <button
+                class="favorite-action"
+                [class.active]="esMaquinaFavorita(machine.idMaquina)"
+                type="button"
+                (click)="toggleMaquinaFavorita(machine)"
+                [title]="esMaquinaFavorita(machine.idMaquina) ? 'Quitar de favoritas' : 'Agregar a favoritas'"
+                [attr.aria-label]="(esMaquinaFavorita(machine.idMaquina) ? 'Quitar ' : 'Agregar ') + machine.nombre + (esMaquinaFavorita(machine.idMaquina) ? ' de favoritas' : ' a favoritas')"
+              >
+                {{ esMaquinaFavorita(machine.idMaquina) ? '★' : '☆' }}
+              </button>
               @if (machine.estado === 'mantencion') {
                 <p class="machine-unavailable">Temporalmente fuera de servicio</p>}
               @if (machine.imagenUrl) {

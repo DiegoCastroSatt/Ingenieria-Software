@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS historial_imc;
 DROP TABLE IF EXISTS perfil_usuario;
 DROP TABLE IF EXISTS reserva_cancelaciones;
 DROP TABLE IF EXISTS reservas;
+DROP TABLE IF EXISTS usuario_maquina_favorita;
 DROP TABLE IF EXISTS mantenimientos;
 DROP TABLE IF EXISTS horarios;
 DROP TABLE IF EXISTS ejercicios;
@@ -73,6 +74,15 @@ CREATE TABLE historial_imc (
     categoria_imc ENUM('bajo_peso', 'normal', 'sobrepeso', 'obesidad') NOT NULL,
     fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+
+CREATE TABLE usuario_maquina_favorita (
+    id_usuario INT NOT NULL,
+    id_maquina INT NOT NULL,
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_usuario, id_maquina),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id_maquina)
 );
 
 CREATE TABLE rutinas (

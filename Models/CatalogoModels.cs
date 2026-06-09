@@ -14,6 +14,11 @@ public class Maquina
     public int Cantidad { get; set; }
 }
 
+public class MaquinaFavoritaRequest
+{
+    public int IdUsuario { get; set; }
+}
+
 public class Ejercicio
 {
     public int IdEjercicio { get; set; }

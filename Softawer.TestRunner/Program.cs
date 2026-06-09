@@ -43,6 +43,7 @@ void TestSchema()
     var sql = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "database.sql", "TablasGym.sql"));
     AssertContains(sql, "CREATE TABLE usuarios");
     AssertContains(sql, "CREATE TABLE perfil_usuario");
+    AssertContains(sql, "CREATE TABLE usuario_maquina_favorita");
     AssertContains(sql, "CREATE TABLE historial_imc");
     AssertContains(sql, "CREATE TABLE ejercicios");
     AssertContains(sql, "CREATE TABLE rutina_ejercicio");

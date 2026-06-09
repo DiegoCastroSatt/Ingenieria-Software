@@ -72,6 +72,69 @@ public class CatalogoRepository(MySqlDataSource dataSource)
         };
     }
 
+    public async Task<IReadOnlyList<Maquina>> ListMaquinasFavoritasAsync(int idUsuario)
+    {
+        var maquinas = new List<Maquina>();
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT m.id_maquina, m.id_tipo_maquina, tm.nombre AS tipo_maquina, m.nombre, m.descripcion,
+                   m.musculos_objetivo, m.imagen_url, m.ubicacion, m.estado, m.cantidad
+            FROM usuario_maquina_favorita umf
+            INNER JOIN maquinas m ON m.id_maquina = umf.id_maquina
+            INNER JOIN tipos_maquina tm ON tm.id_tipo_maquina = m.id_tipo_maquina
+            WHERE umf.id_usuario = @idUsuario
+            ORDER BY umf.fecha_creacion DESC, tm.nombre, m.nombre;
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            maquinas.Add(ReadMaquina(reader));
+        }
+
+        return maquinas;
+    }
+
+    public async Task<bool> AddMaquinaFavoritaAsync(int idUsuario, int idMaquina)
+    {
+        if (!await ExistsUsuarioAsync(idUsuario) || await GetMaquinaAsync(idMaquina) is null)
+        {
+            return false;
+        }
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT IGNORE INTO usuario_maquina_favorita (id_usuario, id_maquina)
+            VALUES (@idUsuario, @idMaquina);
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        command.Parameters.AddWithValue("@idMaquina", idMaquina);
+        await command.ExecuteNonQueryAsync();
+        return true;
+    }
+
+    public async Task<bool> RemoveMaquinaFavoritaAsync(int idUsuario, int idMaquina)
+    {
+        if (!await ExistsUsuarioAsync(idUsuario) || await GetMaquinaAsync(idMaquina) is null)
+        {
+            return false;
+        }
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            DELETE FROM usuario_maquina_favorita
+            WHERE id_usuario = @idUsuario AND id_maquina = @idMaquina;
+            """;
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        command.Parameters.AddWithValue("@idMaquina", idMaquina);
+        await command.ExecuteNonQueryAsync();
+        return true;
+    }
+
     public async Task<IReadOnlyList<Ejercicio>> ListEjerciciosAsync()
     {
         var ejercicios = new List<Ejercicio>();
@@ -99,5 +162,32 @@ public class CatalogoRepository(MySqlDataSource dataSource)
         }
 
         return ejercicios;
+    }
+
+    private async Task<bool> ExistsUsuarioAsync(int idUsuario)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT EXISTS(SELECT 1 FROM usuarios WHERE id_usuario = @idUsuario);";
+        command.Parameters.AddWithValue("@idUsuario", idUsuario);
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(result) == 1;
+    }
+
+    private static Maquina ReadMaquina(MySqlDataReader reader)
+    {
+        return new Maquina
+        {
+            IdMaquina = reader.GetInt32("id_maquina"),
+            IdTipoMaquina = reader.GetInt32("id_tipo_maquina"),
+            TipoMaquina = reader.GetString("tipo_maquina"),
+            Nombre = reader.GetString("nombre"),
+            Descripcion = reader.GetString("descripcion"),
+            MusculosObjetivo = reader.GetString("musculos_objetivo"),
+            ImagenUrl = reader.GetString("imagen_url"),
+            Ubicacion = reader.GetString("ubicacion"),
+            Estado = reader.GetString("estado"),
+            Cantidad = reader.GetInt32("cantidad")
+        };
     }
 }

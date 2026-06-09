@@ -67,6 +67,8 @@ export class App implements OnInit {
   protected readonly selectedMachineByRoutine = signal<Record<number, number>>({});
   protected readonly extraMachinesByRoutine = signal<Record<number, Maquina[]>>({});
   protected readonly machines = signal<Maquina[]>([]);
+  protected readonly favoriteMachines = signal<Maquina[]>([]);
+  protected readonly favoriteMachinesOpen = signal(true);
   protected readonly exercises = signal<Ejercicio[]>([]);
   protected readonly reservations = signal<Reserva[]>([]);
   protected readonly activeReservations = signal<Reserva[]>([]);
@@ -601,6 +603,7 @@ export class App implements OnInit {
     this.recommendedRoutines.set([]);
     this.userRoutines.set([]);
     this.reservations.set([]);
+    this.favoriteMachines.set([]);
     this.currentSession.set(null);
     this.workoutHistory.set([]);
     this.apiMessage.set('Sesion cerrada.');
@@ -730,6 +733,37 @@ export class App implements OnInit {
       },
       error: (error) => {
         this.apiMessage.set(this.extractError(error, 'No se pudo eliminar la rutina.'));
+      }
+    });
+  }
+
+  protected esMaquinaFavorita(idMaquina: number): boolean {
+    return this.favoriteMachines().some((machine) => machine.idMaquina === idMaquina);
+  }
+
+  protected toggleFavoriteMachinesSection(): void {
+    this.favoriteMachinesOpen.update((isOpen) => !isOpen);
+  }
+
+  protected toggleMaquinaFavorita(machine: Maquina): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para guardar maquinas favoritas.');
+      return;
+    }
+
+    const request = this.esMaquinaFavorita(machine.idMaquina)
+      ? this.gymService.removeMaquinaFavorita(machine.idMaquina, user.id)
+      : this.gymService.addMaquinaFavorita(machine.idMaquina, { idUsuario: user.id });
+
+    request.subscribe({
+      next: (favorites) => {
+        this.favoriteMachines.set(favorites);
+        const action = this.esMaquinaFavorita(machine.idMaquina) ? 'agregada a favoritas' : 'quitada de favoritas';
+        this.apiMessage.set(`${machine.nombre} ${action}.`);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo actualizar la maquina favorita.'));
       }
     });
   }
@@ -973,6 +1007,7 @@ export class App implements OnInit {
     console.log('Loading user data for ID:', idUsuario);
     this.loadUserRoutines(idUsuario);
     this.loadReservations(idUsuario);
+    this.loadFavoriteMachines(idUsuario);
     this.loadHistory(idUsuario);
     this.gymService.getRecomendaciones(idUsuario).subscribe({
       next: (routines) => {
@@ -1011,6 +1046,16 @@ export class App implements OnInit {
       error: (err) => {
         console.error('Error loading reservations:', err);
         this.reservations.set([]);
+      }
+    });
+  }
+
+  private loadFavoriteMachines(idUsuario: number): void {
+    this.gymService.getMaquinasFavoritas(idUsuario).subscribe({
+      next: (machines) => this.favoriteMachines.set(machines),
+      error: (err) => {
+        console.error('Error loading favorite machines:', err);
+        this.favoriteMachines.set([]);
       }
     });
   }

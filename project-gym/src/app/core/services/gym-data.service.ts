@@ -17,6 +17,7 @@ import {
   ImcRecommendationResponse,
   IniciarSesionPayload,
   Maquina,
+  MaquinaFavoritaPayload,
   Reserva,
   RutinaDetalle,
   RutinaResumen,
@@ -38,6 +39,20 @@ export class GymService {
 
   getMaquinas(): Observable<Maquina[]> {
     return this.http.get<Maquina[]>(`${this.apiUrl}/catalogo/maquinas`);
+  }
+
+  getMaquinasFavoritas(idUsuario: number): Observable<Maquina[]> {
+    return this.http.get<Maquina[]>(`${this.apiUrl}/catalogo/maquinas/favoritas/${idUsuario}`);
+  }
+
+  addMaquinaFavorita(idMaquina: number, payload: MaquinaFavoritaPayload): Observable<Maquina[]> {
+    return this.http.post<Maquina[]>(`${this.apiUrl}/catalogo/maquinas/${idMaquina}/favorita`, payload);
+  }
+
+  removeMaquinaFavorita(idMaquina: number, idUsuario: number): Observable<Maquina[]> {
+    return this.http.delete<Maquina[]>(`${this.apiUrl}/catalogo/maquinas/${idMaquina}/favorita`, {
+      params: { idUsuario }
+    });
   }
 
   getEjercicios(): Observable<Ejercicio[]> {

@@ -78,12 +78,13 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var schemaInitializer = scope.ServiceProvider.GetRequiredService<DatabaseSchemaInitializer>();
+        await schemaInitializer.EnsureUsuarioMaquinaFavoritaAsync();
         await schemaInitializer.EnsureReservaCancelacionesAsync();
     }
     catch (Exception exception)
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogWarning(exception, "No se pudo asegurar la tabla reserva_cancelaciones.");
+        logger.LogWarning(exception, "No se pudieron asegurar las tablas auxiliares.");
     }
 }
 
