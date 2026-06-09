@@ -4,6 +4,33 @@ namespace Softawer.Data;
 
 public class DatabaseSchemaInitializer(MySqlDataSource dataSource)
 {
+    private static readonly IReadOnlyList<(string Name, string Definition)> PerfilUsuarioPublicColumns =
+    [
+        ("alias", "VARCHAR(100) NULL"),
+        ("avatar_url", "VARCHAR(500) NULL"),
+        ("telefono_trabajo", "VARCHAR(20) NULL"),
+        ("email_trabajo", "VARCHAR(100) NULL"),
+        ("sitio_personal", "VARCHAR(200) NULL"),
+        ("twitter", "VARCHAR(50) NULL")
+    ];
+
+    public async Task EnsurePerfilUsuarioPublicColumnsAsync()
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+
+        foreach (var column in PerfilUsuarioPublicColumns)
+        {
+            if (await PerfilUsuarioColumnExistsAsync(connection, column.Name))
+            {
+                continue;
+            }
+
+            await using var alterCommand = connection.CreateCommand();
+            alterCommand.CommandText = $"ALTER TABLE perfil_usuario ADD COLUMN {column.Name} {column.Definition};";
+            await alterCommand.ExecuteNonQueryAsync();
+        }
+    }
+
     public async Task EnsureUsuarioMaquinaFavoritaAsync()
     {
         await using var connection = await dataSource.OpenConnectionAsync();
@@ -37,5 +64,20 @@ public class DatabaseSchemaInitializer(MySqlDataSource dataSource)
             );
             """;
         await command.ExecuteNonQueryAsync();
+    }
+
+    private static async Task<bool> PerfilUsuarioColumnExistsAsync(MySqlConnection connection, string columnName)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT COUNT(*)
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'perfil_usuario'
+              AND COLUMN_NAME = @columnName;
+            """;
+        command.Parameters.AddWithValue("@columnName", columnName);
+        var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+        return count > 0;
     }
 }

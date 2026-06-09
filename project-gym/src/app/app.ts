@@ -1,7 +1,9 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal, computed } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
@@ -37,7 +39,7 @@ type ExerciseWithImage = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -45,9 +47,22 @@ export class App implements OnInit {
   private readonly gymService = inject(GymService);
   private readonly authService = inject(AuthService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
 
   protected readonly title = signal('project-gym');
+  protected readonly isPerfilRoute = signal(false);
+
+  constructor() {
+    // Escuchar cambios de ruta para saber si estamos en perfil
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil');
+    });
+  }
+
   protected readonly menuOpen = signal(false);
+  protected readonly userMenuOpen = signal(false);
   protected readonly loginModalOpen = signal(false);
   protected readonly registerModalOpen = signal(false);
   protected readonly loginError = signal('');
@@ -458,6 +473,10 @@ export class App implements OnInit {
       this.menuOpen.set(false);
     }
 
+    if (!target?.closest('.user-menu-wrapper')) {
+      this.userMenuOpen.set(false);
+    }
+
     if (target?.classList.contains('modal-overlay')) {
       if (target.classList.contains('login-overlay')) {
         this.cerrarLogin();
@@ -606,7 +625,27 @@ export class App implements OnInit {
     this.favoriteMachines.set([]);
     this.currentSession.set(null);
     this.workoutHistory.set([]);
+    this.userMenuOpen.set(false);
     this.apiMessage.set('Sesion cerrada.');
+  }
+
+  protected toggleUserMenu(): void {
+    this.userMenuOpen.update((value) => !value);
+  }
+
+  protected cerrarMenuUsuario(): void {
+    this.userMenuOpen.set(false);
+  }
+
+  protected navegarAPerfil(): void {
+    this.userMenuOpen.set(false);
+    this.router.navigate(['/perfil']);
+  }
+
+  protected navegarAProgreso(): void {
+    this.userMenuOpen.set(false);
+    const element = document.querySelector('#historial');
+    element?.scrollIntoView({ behavior: 'smooth' });
   }
 
   protected intentarLogin(): void {
@@ -766,6 +805,11 @@ export class App implements OnInit {
         this.apiMessage.set(this.extractError(error, 'No se pudo actualizar la maquina favorita.'));
       }
     });
+  }
+
+  protected canDeleteRoutine(routine: RutinaResumen): boolean {
+    const user = this.currentUser();
+    return !!user && routine.idUsuario === user.id && routine.tipoRutina !== 'predefinida';
   }
 
   protected crearReserva(): void {
@@ -1025,7 +1069,7 @@ export class App implements OnInit {
     this.gymService.getRutinasUsuario(idUsuario).subscribe({
       next: (routines) => {
         console.log('Loaded user routines:', routines);
-        this.userRoutines.set(routines.filter((routine) => routine.idUsuario === idUsuario));
+        this.userRoutines.set(routines);
         if (!this.sessionForm.idRutina && routines.length > 0) {
           this.sessionForm.idRutina = routines[0].idRutina;
         }

@@ -1,4 +1,5 @@
 <div class="app-shell">
+  @if (!isPerfilRoute()) {
   <header class="topbar">
     <a class="brand" href="#inicio" aria-label="Ir al inicio">
       <img class="brand-mark" src="logo.png" alt="" />
@@ -24,7 +25,7 @@
           <a href="#inicio">Inicio</a>
           <a href="#maquinas">Disponibilidad</a>
           <a href="#rutinas">Rutinas</a>
-          <a href="#perfil">Perfil IMC</a>
+          <a (click)="navegarAPerfil()" style="cursor: pointer;">Perfil</a>
           <a href="#reservas">Reservas</a>
           <a href="#seguimiento">Seguimiento</a>
           <a href="#historial">Historial</a>
@@ -35,15 +36,35 @@
       </div>
 
       @if (currentUser()) {
-        <button class="session-pill" type="button" (click)="cerrarSesion()">
-          {{ currentUser()!.nombre }}
-        </button>
+        <div class="user-menu-wrapper">
+          <button class="user-menu-button" type="button" [class.open]="userMenuOpen()" (click)="toggleUserMenu()">
+            {{ currentUser()!.nombre }}
+            <span aria-hidden="true">▾</span>
+          </button>
+
+          <div class="user-dropdown" [class.show]="userMenuOpen()">
+            <button type="button" class="user-menu-item" (click)="navegarAPerfil()">
+              <span>Perfil</span>
+              <small>Editar información personal</small>
+            </button>
+            <button type="button" class="user-menu-item" (click)="navegarAProgreso()">
+              <span>Progreso</span>
+              <small>Ver historial de entrenamientos</small>
+            </button>
+            <hr class="menu-divider" />
+            <button type="button" class="user-menu-item danger" (click)="cerrarSesion()">
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
       } @else {
         <button class="session-pill" type="button" (click)="abrirLogin()">Iniciar sesion</button>
       }
     </div>
   </header>
+  }
 
+  @if (!isPerfilRoute()) {
   <main id="inicio">
     <section class="hero-panel">
       <div class="hero-content">
@@ -328,9 +349,11 @@
                   <span>{{ routine.nombre }}</span>
                   <small>{{ routine.tipoRutina }}</small>
                 </div>
-                <button class="trash-action" type="button" (click)="eliminarRutina(routine)" title="Eliminar rutina" aria-label="Eliminar rutina {{ routine.nombre }}">
-                  🗑
-                </button>
+                @if (canDeleteRoutine(routine)) {
+                  <button class="trash-action" type="button" (click)="eliminarRutina(routine)" title="Eliminar rutina" aria-label="Eliminar rutina {{ routine.nombre }}">
+                    🗑
+                  </button>
+                }
               </div>
             }
           }
@@ -338,69 +361,6 @@
       </div>
     </section>
 
-    <section id="perfil" class="section-band two-column">
-      <article class="panel">
-        <div class="section-heading compact">
-          <p class="eyebrow">Perfil fisico</p>
-          <h2>IMC y recomendaciones</h2>
-          <p>Calcula IMC, guarda historial y consulta rutinas recomendadas.</p>
-        </div>
-
-        <div class="form-grid">
-          <label>Fecha nacimiento<input type="date" [(ngModel)]="bmiForm.fechaNacimiento" /></label>
-          <label>Sexo
-            <select [(ngModel)]="bmiForm.sexo">
-              <option value="masculino">Masculino</option>
-              <option value="femenino">Femenino</option>
-              <option value="otro">Otro</option>
-            </select>
-          </label>
-          <label>Altura cm<input type="number" [(ngModel)]="bmiForm.alturaCm" /></label>
-          <label>Peso kg<input type="number" [(ngModel)]="bmiForm.pesoKg" /></label>
-          <label>Objetivo<input type="text" [(ngModel)]="bmiForm.objetivo" /></label>
-          <label>Nivel actividad
-            <select [(ngModel)]="bmiForm.nivelActividad">
-              <option value="bajo">Bajo</option>
-              <option value="medio">Medio</option>
-              <option value="alto">Alto</option>
-            </select>
-          </label>
-        </div>
-
-        <button class="primary-action full" type="button" (click)="guardarPerfilYCalcularImc()">
-          Guardar y calcular IMC
-        </button>
-
-        @if (bmiResult(); as bmi) {
-          <div class="result-panel">
-            <span>IMC calculado</span>
-            <strong>{{ bmi.imc }} · {{ bmi.categoriaImc }}</strong>
-          </div>
-        }
-      </article>
-
-      <article class="panel">
-        <div class="section-heading compact">
-          <p class="eyebrow">Recomendaciones</p>
-          <h2>Segun categoria IMC</h2>
-          <p>La recomendacion orienta, pero el usuario puede elegir otras rutinas.</p>
-        </div>
-
-        @if (recommendedRoutines().length === 0) {
-          <div class="empty-state">Aun no hay recomendaciones para mostrar.</div>
-        } @else {
-          @for (routine of recommendedRoutines(); track routine.idRutina) {
-            <div class="recommendation-row">
-              <div>
-                <strong>{{ routine.nombre }}</strong>
-                <span>{{ routine.descripcion }}</span>
-              </div>
-              <button class="secondary-action small" type="button" (click)="copiarRutina(routine.idRutina)">Copiar</button>
-            </div>
-          }
-        }
-      </article>
-    </section>
 
     <section id="reservas" class="section-band two-column">
       <article class="panel">
@@ -559,12 +519,20 @@
       </div>
     </section>
   </main>
+  }
 
+  @if (!isPerfilRoute()) {
   <footer class="footer">
     <span>GymApp 2026</span>
     <span>Interfaz basada en flujos de autenticacion, reservas y rutinas</span>
   </footer>
+  }
 
+  @if (isPerfilRoute()) {
+  <router-outlet></router-outlet>
+  }
+
+  @if (!isPerfilRoute()) {
   <div class="modal-overlay login-overlay" [class.show]="loginModalOpen()">
     <section class="modal">
       <button class="modal-close" type="button" (click)="cerrarLogin()">×</button>
@@ -603,4 +571,5 @@
       }
     </section>
   </div>
+  }
 </div>

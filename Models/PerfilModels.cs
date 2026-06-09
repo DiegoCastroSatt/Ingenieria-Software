@@ -10,6 +10,12 @@ public class PerfilUsuario
     public decimal? PesoKg { get; set; }
     public string? Objetivo { get; set; }
     public string? NivelActividad { get; set; }
+    public string? Alias { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? TelefonoTrabajo { get; set; }
+    public string? EmailTrabajo { get; set; }
+    public string? SitioPersonal { get; set; }
+    public string? Twitter { get; set; }
     public DateTime FechaActualizacion { get; set; }
 }
 
@@ -32,6 +38,16 @@ public class ActualizarPerfilImcRequest
     public decimal PesoKg { get; set; }
     public string? Objetivo { get; set; }
     public string? NivelActividad { get; set; }
+}
+
+public class ActualizarInformacionPublicaRequest
+{
+    public string? Alias { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? TelefonoTrabajo { get; set; }
+    public string? EmailTrabajo { get; set; }
+    public string? SitioPersonal { get; set; }
+    public string? Twitter { get; set; }
 }
 
 public class ImcRecommendationResponse

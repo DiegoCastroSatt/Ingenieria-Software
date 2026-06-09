@@ -13,6 +13,31 @@ public class PerfilController(
     RutinaRepository rutinaRepository,
     ImcService imcService) : ControllerBase
 {
+    [HttpGet("{idUsuario:int}")]
+    public async Task<ActionResult<PerfilUsuario>> GetPerfil(int idUsuario)
+    {
+        var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
+        if (usuario is null)
+        {
+            return NotFound("Usuario no encontrado.");
+        }
+
+        var perfil = await perfilUsuarioRepository.GetPerfilAsync(idUsuario);
+        return perfil is null ? NotFound("Perfil no encontrado.") : Ok(perfil);
+    }
+
+    [HttpGet("{idUsuario:int}/historial-imc")]
+    public async Task<ActionResult<IReadOnlyList<HistorialImc>>> GetHistorialImc(int idUsuario)
+    {
+        var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
+        if (usuario is null)
+        {
+            return NotFound("Usuario no encontrado.");
+        }
+
+        return Ok(await perfilUsuarioRepository.ListHistorialImcUsuarioAsync(idUsuario));
+    }
+
     [HttpPost("{idUsuario:int}/imc")]
     public async Task<ActionResult<ImcRecommendationResponse>> ActualizarPerfilImc(int idUsuario, [FromBody] ActualizarPerfilImcRequest request)
     {
@@ -47,5 +72,19 @@ public class PerfilController(
         }
 
         return Ok(await rutinaRepository.ListRutinasRecomendadasAsync(categoriaImc));
+    }
+
+    [HttpPut("{idUsuario:int}/informacion-publica")]
+    public async Task<ActionResult<PerfilUsuario>> ActualizarInformacionPublica(int idUsuario, [FromBody] ActualizarInformacionPublicaRequest request)
+    {
+        var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
+        if (usuario is null)
+        {
+            return NotFound("Usuario no encontrado.");
+        }
+
+        var perfil = await perfilUsuarioRepository.UpsertInformacionPublicaAsync(idUsuario, request);
+
+        return Ok(perfil);
     }
 }

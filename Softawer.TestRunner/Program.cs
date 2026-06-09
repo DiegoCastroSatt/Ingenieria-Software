@@ -44,6 +44,12 @@ void TestSchema()
     AssertContains(sql, "CREATE TABLE usuarios");
     AssertContains(sql, "CREATE TABLE perfil_usuario");
     AssertContains(sql, "CREATE TABLE usuario_maquina_favorita");
+    AssertContains(sql, "alias VARCHAR(100) NULL");
+    AssertContains(sql, "avatar_url VARCHAR(500) NULL");
+    AssertContains(sql, "telefono_trabajo VARCHAR(20) NULL");
+    AssertContains(sql, "email_trabajo VARCHAR(100) NULL");
+    AssertContains(sql, "sitio_personal VARCHAR(200) NULL");
+    AssertContains(sql, "twitter VARCHAR(50) NULL");
     AssertContains(sql, "CREATE TABLE historial_imc");
     AssertContains(sql, "CREATE TABLE ejercicios");
     AssertContains(sql, "CREATE TABLE rutina_ejercicio");
