@@ -60,6 +60,12 @@ CREATE TABLE perfil_usuario (
     peso_kg DECIMAL(5,2) NULL,
     objetivo VARCHAR(100) NULL,
     nivel_actividad VARCHAR(50) NULL,
+    alias VARCHAR(100) NULL,
+    avatar_url VARCHAR(500) NULL,
+    telefono_trabajo VARCHAR(20) NULL,
+    email_trabajo VARCHAR(100) NULL,
+    sitio_personal VARCHAR(200) NULL,
+    twitter VARCHAR(50) NULL,
     fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );

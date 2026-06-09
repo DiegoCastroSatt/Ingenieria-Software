@@ -1,4 +1,4 @@
-import { CommonModule, isPlatformBrowser, NgIf } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
@@ -39,7 +39,7 @@ type ExerciseWithImage = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet, NgIf],
+  imports: [CommonModule, FormsModule, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

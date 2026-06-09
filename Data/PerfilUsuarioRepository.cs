@@ -51,12 +51,12 @@ public class PerfilUsuarioRepository(MySqlDataSource dataSource)
         }
 
         command.Parameters.AddWithValue("@idUsuario", idUsuario);
-        command.Parameters.AddWithValue("@fechaNacimiento", request.FechaNacimiento?.ToDateTime(TimeOnly.MinValue));
-        command.Parameters.AddWithValue("@sexo", request.Sexo);
+        command.Parameters.AddWithValue("@fechaNacimiento", request.FechaNacimiento.HasValue ? request.FechaNacimiento.Value.ToDateTime(TimeOnly.MinValue) : DBNull.Value);
+        command.Parameters.AddWithValue("@sexo", ToDbValue(request.Sexo));
         command.Parameters.AddWithValue("@alturaCm", request.AlturaCm);
         command.Parameters.AddWithValue("@pesoKg", request.PesoKg);
-        command.Parameters.AddWithValue("@objetivo", request.Objetivo);
-        command.Parameters.AddWithValue("@nivelActividad", request.NivelActividad);
+        command.Parameters.AddWithValue("@objetivo", ToDbValue(request.Objetivo));
+        command.Parameters.AddWithValue("@nivelActividad", ToDbValue(request.NivelActividad));
         await command.ExecuteNonQueryAsync();
 
         return (await GetPerfilAsync(idUsuario))!;
@@ -163,12 +163,12 @@ public class PerfilUsuarioRepository(MySqlDataSource dataSource)
         }
 
         command.Parameters.AddWithValue("@idUsuario", idUsuario);
-        command.Parameters.AddWithValue("@alias", string.IsNullOrEmpty(request.Alias) ? DBNull.Value : request.Alias);
-        command.Parameters.AddWithValue("@avatarUrl", string.IsNullOrEmpty(request.AvatarUrl) ? DBNull.Value : request.AvatarUrl);
-        command.Parameters.AddWithValue("@telefonoTrabajo", string.IsNullOrEmpty(request.TelefonoTrabajo) ? DBNull.Value : request.TelefonoTrabajo);
-        command.Parameters.AddWithValue("@emailTrabajo", string.IsNullOrEmpty(request.EmailTrabajo) ? DBNull.Value : request.EmailTrabajo);
-        command.Parameters.AddWithValue("@sitioPersonal", string.IsNullOrEmpty(request.SitioPersonal) ? DBNull.Value : request.SitioPersonal);
-        command.Parameters.AddWithValue("@twitter", string.IsNullOrEmpty(request.Twitter) ? DBNull.Value : request.Twitter);
+        command.Parameters.AddWithValue("@alias", ToDbValue(request.Alias));
+        command.Parameters.AddWithValue("@avatarUrl", ToDbValue(request.AvatarUrl));
+        command.Parameters.AddWithValue("@telefonoTrabajo", ToDbValue(request.TelefonoTrabajo));
+        command.Parameters.AddWithValue("@emailTrabajo", ToDbValue(request.EmailTrabajo));
+        command.Parameters.AddWithValue("@sitioPersonal", ToDbValue(request.SitioPersonal));
+        command.Parameters.AddWithValue("@twitter", ToDbValue(request.Twitter));
         await command.ExecuteNonQueryAsync();
 
         return (await GetPerfilAsync(idUsuario));
@@ -210,5 +210,10 @@ public class PerfilUsuarioRepository(MySqlDataSource dataSource)
             CategoriaImc = reader.GetString("categoria_imc"),
             FechaRegistro = reader.GetDateTime("fecha_registro")
         };
+    }
+
+    private static object ToDbValue(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
     }
 }

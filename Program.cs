@@ -78,6 +78,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var schemaInitializer = scope.ServiceProvider.GetRequiredService<DatabaseSchemaInitializer>();
+        await schemaInitializer.EnsurePerfilUsuarioPublicColumnsAsync();
         await schemaInitializer.EnsureReservaCancelacionesAsync();
     }
     catch (Exception exception)
