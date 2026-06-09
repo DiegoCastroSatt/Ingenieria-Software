@@ -68,6 +68,7 @@
 
 .panel {
   background: white;
+  color: #000;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -96,7 +97,7 @@
 }
 
 .section-heading p {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #000);
   font-size: 0.9rem;
   margin: 0.5rem 0 0 0;
 }
@@ -113,7 +114,7 @@
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.9rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #000);
 }
 
 .form-grid input,
@@ -154,7 +155,7 @@
 .result-panel span {
   display: block;
   font-size: 0.85rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #000);
   margin-bottom: 0.25rem;
 }
 
@@ -166,7 +167,7 @@
 .empty-state {
   text-align: center;
   padding: 2rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #000);
 }
 
 .empty-state.compact {
@@ -180,7 +181,7 @@
 .history-panel h3 {
   margin: 0 0 0.75rem 0;
   font-size: 1rem;
-  color: var(--text-dark, #333);
+  color: var(--text-dark, #000000);
 }
 
 .history-table-wrap {
@@ -196,13 +197,13 @@
 .history-table th,
 .history-table td {
   padding: 0.65rem;
-  border-bottom: 1px solid var(--border-color, #eee);
+  border-bottom: 1px solid var(--border-color, #230808);
   text-align: left;
   white-space: nowrap;
 }
 
 .history-table th {
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #3f3535);
   font-weight: 600;
 }
 
@@ -226,7 +227,7 @@
 
 .recommendation-row span {
   font-size: 0.85rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #000);
 }
 
 .secondary-action {
@@ -268,7 +269,7 @@
 
 .field-hint {
   font-size: 0.8rem;
-  color: var(--text-secondary, #666);
+  color: var(--text-secondary, #000);
   font-style: italic;
   margin-top: 0.25rem;
 }
