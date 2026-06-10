@@ -53,11 +53,11 @@ export class App implements OnInit {
   protected readonly isPerfilRoute = signal(false);
 
   constructor() {
-    // Escuchar cambios de ruta para saber si estamos en perfil
+    // Escuchar cambios de ruta para mostrar paginas standalone.
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil');
+      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil' || event.urlAfterRedirects === '/progreso');
     });
   }
 
@@ -641,8 +641,7 @@ export class App implements OnInit {
 
   protected navegarAProgreso(): void {
     this.userMenuOpen.set(false);
-    const element = document.querySelector('#historial');
-    element?.scrollIntoView({ behavior: 'smooth' });
+    this.router.navigate(['/progreso']);
   }
 
   protected intentarLogin(): void {
@@ -942,6 +941,12 @@ export class App implements OnInit {
     this.loadHistory(user.id);
   }
 
+  protected reservasParaEntrenamiento(): Reserva[] {
+    return this.reservations().filter((reservation) =>
+      reservation.estado === 'activa' || reservation.estado === 'confirmada'
+    );
+  }
+
   private tieneReservaTraslapada(idMaquina: number): boolean {
     if (!this.horarioReservaValido()) {
       return false;
@@ -991,6 +996,9 @@ export class App implements OnInit {
         this.machines.set(machines);
         if (!this.reservationForm.idMaquina && machines.length > 0) {
           this.reservationForm.idMaquina = machines[0].idMaquina;
+        }
+        if (!this.detailForm.idMaquina && machines.length > 0) {
+          this.detailForm.idMaquina = machines[0].idMaquina;
         }
       }
     });

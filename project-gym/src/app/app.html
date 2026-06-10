@@ -362,7 +362,7 @@
               }
             </select>
           </label>
-          <label>Notas<input type="text" [(ngModel)]="sessionForm.notas" /></label>
+          <label>Notas iniciales<input type="text" [(ngModel)]="sessionForm.notas" placeholder="Objetivo, molestias, foco del dia..." /></label>
           <button class="primary-action full" type="button" (click)="iniciarSesionEntrenamiento()">Comenzar entrenamiento</button>
         } @else {
           <div class="result-panel">
@@ -379,13 +379,72 @@
           </label>
 
           <div class="form-grid two">
+            <label>Maquina
+              <select [(ngModel)]="detailForm.idMaquina">
+                <option [ngValue]="0">Sin maquina</option>
+                @for (machine of machines(); track machine.idMaquina) {
+                  <option [ngValue]="machine.idMaquina">{{ machine.nombre }}</option>
+                }
+              </select>
+            </label>
+            <label>Reserva
+              <select [(ngModel)]="detailForm.idReserva">
+                <option [ngValue]="0">Sin reserva asociada</option>
+                @for (reservation of reservasParaEntrenamiento(); track reservation.idReserva) {
+                  <option [ngValue]="reservation.idReserva">{{ reservation.nombreMaquina }} · {{ reservation.fechaReserva }} {{ reservation.horaInicio }}</option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="form-grid two">
             <label>Series<input type="number" [(ngModel)]="detailForm.seriesRealizadas" /></label>
             <label>Reps<input type="number" [(ngModel)]="detailForm.repeticionesRealizadas" /></label>
             <label>Peso kg<input type="number" [(ngModel)]="detailForm.pesoUsadoKg" /></label>
             <label>Duracion min<input type="number" [(ngModel)]="detailForm.duracionMinutos" /></label>
           </div>
 
+          <div class="form-grid two">
+            <label>Esfuerzo percibido
+              <select [(ngModel)]="detailForm.esfuerzoPercibido">
+                <option [ngValue]="1">1 · Muy suave</option>
+                <option [ngValue]="2">2</option>
+                <option [ngValue]="3">3 · Suave</option>
+                <option [ngValue]="4">4</option>
+                <option [ngValue]="5">5 · Moderado</option>
+                <option [ngValue]="6">6</option>
+                <option [ngValue]="7">7 · Intenso</option>
+                <option [ngValue]="8">8</option>
+                <option [ngValue]="9">9 · Muy intenso</option>
+                <option [ngValue]="10">10 · Maximo</option>
+              </select>
+            </label>
+            <label>Notas del ejercicio<input type="text" [(ngModel)]="detailForm.notas" placeholder="Tecnica, molestias, variacion..." /></label>
+          </div>
+
           <button class="secondary-action full" type="button" (click)="agregarDetalleSesion()">Agregar ejercicio</button>
+
+          <div class="session-close-options">
+            <h3>Cierre de sesion</h3>
+            <div class="form-grid two">
+              <label>Completado %
+                <input type="number" min="0" max="100" [(ngModel)]="completeForm.porcentajeCompletado" />
+              </label>
+              <label>Calorias estimadas
+                <input type="number" min="0" [(ngModel)]="completeForm.caloriasEstimadas" />
+              </label>
+              <label>Tiempo total min
+                <input type="number" min="0" [(ngModel)]="completeForm.tiempoTotalMinutos" />
+              </label>
+              <label>Observacion
+                <input type="text" [(ngModel)]="completeForm.observacion" placeholder="Como termino la sesion" />
+              </label>
+            </div>
+            <label>Notas finales
+              <input type="text" [(ngModel)]="completeForm.notas" placeholder="Sensaciones, ajustes para la proxima..." />
+            </label>
+          </div>
+
           <button class="primary-action full" type="button" (click)="completarSesionActual()">Completar sesion</button>
         }
       </article>
