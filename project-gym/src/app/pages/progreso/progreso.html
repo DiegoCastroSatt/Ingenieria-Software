@@ -1,1 +1,134 @@
-<p>progreso works!</p>
+<section class="progreso-page">
+  <header class="page-header">
+    <button class="back-button" type="button" (click)="volverAlInicio()">← Volver al inicio</button>
+    <div class="header-left">
+      <h1>Seguimiento de Sesiones</h1>
+      <p>{{ currentUser()?.nombre || 'Usuario' }} · Historial de entrenamientos</p>
+    </div>
+    <span class="badge" [class.complete]="completionPct() >= 100">{{ statusLabel() }}</span>
+  </header>
+
+  @if (loading()) {
+    <div class="state-panel">Cargando progreso...</div>
+  } @else if (errorMessage()) {
+    <div class="state-panel error">{{ errorMessage() }}</div>
+  } @else {
+    <div class="grid">
+      <article class="hero-card">
+        <div class="arc-wrap">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Progreso general">
+            <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="14" />
+            <circle
+              cx="100"
+              cy="100"
+              r="80"
+              fill="none"
+              stroke="#00C9A7"
+              stroke-width="14"
+              stroke-linecap="round"
+              pathLength="100"
+              [attr.stroke-dasharray]="completionPct() + ' ' + (100 - completionPct())"
+              transform="rotate(-90 100 100)"
+            />
+          </svg>
+          <div class="arc-center">
+            <div class="arc-num">{{ completedSessions() }}</div>
+            <div class="arc-denom">de {{ totalGoal() }}</div>
+          </div>
+        </div>
+
+        <div class="hero-info">
+          <h2>Progreso general del plan</h2>
+          <p>
+            Se han completado <strong class="green">{{ completedSessions() }} sesiones</strong>
+            de una meta de <strong>{{ totalGoal() }}</strong>.
+            El avance actual es del <strong class="green">{{ completionPct() }}%</strong>.
+          </p>
+          <div class="legend">
+            <span class="legend-item"><span class="dot green-bg"></span> Completadas ({{ completedSessions() }})</span>
+            <span class="legend-item"><span class="dot blue-bg"></span> Con progreso ({{ sessionsWithProgress() }})</span>
+            <span class="legend-item"><span class="dot amber-bg"></span> En curso ({{ activeSessions() }})</span>
+            <span class="legend-item"><span class="dot red-bg"></span> Restantes ({{ remainingSessions() }})</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card green-accent">
+        <div class="stat-icon">✓</div>
+        <div class="stat-label">Sesiones completadas</div>
+        <div class="stat-value green">{{ completedSessions() }}</div>
+        <div class="stat-sub">{{ completionPct() }}% del plan completado</div>
+      </article>
+
+      <article class="card blue-accent">
+        <div class="stat-icon">%</div>
+        <div class="stat-label">Promedio de avance</div>
+        <div class="stat-value blue">{{ averageProgress() }}%</div>
+        <div class="stat-sub">segun sesiones con progreso</div>
+      </article>
+
+      <article class="card amber-accent">
+        <div class="stat-icon">min</div>
+        <div class="stat-label">Tiempo entrenado</div>
+        <div class="stat-value amber">{{ totalMinutes() }}</div>
+        <div class="stat-sub">minutos registrados</div>
+      </article>
+
+      <article class="card red-accent">
+        <div class="stat-icon">kcal</div>
+        <div class="stat-label">Calorias estimadas</div>
+        <div class="stat-value red">{{ totalCalories() }}</div>
+        <div class="stat-sub">acumuladas en el historial</div>
+      </article>
+
+      <article class="card chart-card">
+        <div class="chart-title">Distribucion del plan</div>
+        <div class="bar-rows">
+          @for (bar of bars(); track bar.name) {
+            <div class="bar-row">
+              <div class="bar-name">{{ bar.name }}</div>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="bar.percent" [style.--fill-color]="bar.color"></div>
+              </div>
+              <div class="bar-pct">{{ bar.value }}</div>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="card chart-card">
+        <div class="chart-title">Mapa de sesiones</div>
+        <div class="sessions-grid">
+          @for (session of sessionDots(); track session.index) {
+            <div class="tip session-dot" [ngClass]="session.className">
+              <span>{{ session.index }}</span>
+              <span class="tip-box">{{ session.label }}</span>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="card chart-card">
+        <div class="chart-title">Historial reciente</div>
+        @if (history().length === 0) {
+          <div class="empty-state">Aun no hay sesiones registradas para este usuario.</div>
+        } @else {
+          <div class="history-list">
+            @for (entry of recentHistory(); track entry.sesion.idSesion) {
+              <div class="history-row">
+                <div>
+                  <strong>{{ entry.rutina?.nombre || 'Entrenamiento libre' }}</strong>
+                  <span>Sesion #{{ entry.sesion.idSesion }} · {{ entry.sesion.estado }}</span>
+                </div>
+                <div class="history-metric">
+                  <strong>{{ entry.progreso?.porcentajeCompletado ?? 0 }}%</strong>
+                  <span>{{ entry.progreso?.tiempoTotalMinutos ?? '-' }} min</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </article>
+    </div>
+  }
+</section>
