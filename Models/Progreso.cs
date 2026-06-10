@@ -10,3 +10,10 @@ public class Progreso
     public DateTime Fecha { get; set; }
     public string RutinaNombre { get; set; } = string.Empty;
 }
+public class ProgresoResponse
+{
+    public int SesionesPagadas { get; set; }
+    public int SesionesImpagas { get; set; }
+    public int SesionesRealizadas { get; set; }
+    public int SesionesRestantes { get; set; }
+}
