@@ -125,7 +125,15 @@ public class SesionEntrenamientoRepository(MySqlDataSource dataSource)
                    p.id_progreso, p.fecha AS progreso_fecha, p.porcentaje_completado, p.calorias_estimadas, p.tiempo_total_minutos, p.observacion
             FROM sesiones_entrenamiento s
             LEFT JOIN rutinas r ON r.id_rutina = s.id_rutina
-            LEFT JOIN progreso p ON p.id_usuario = s.id_usuario AND p.id_rutina <=> s.id_rutina AND p.fecha = DATE(s.fecha_inicio)
+            LEFT JOIN progreso p ON p.id_progreso = (
+                SELECT p2.id_progreso
+                FROM progreso p2
+                WHERE p2.id_usuario = s.id_usuario
+                  AND p2.id_rutina <=> s.id_rutina
+                  AND p2.fecha = DATE(s.fecha_inicio)
+                ORDER BY p2.id_progreso DESC
+                LIMIT 1
+            )
             WHERE s.id_usuario = @idUsuario
             ORDER BY s.fecha_inicio DESC;
             """;
