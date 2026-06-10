@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { filter } from 'rxjs/operators';
+import { filter, finalize } from 'rxjs/operators';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
@@ -53,11 +53,11 @@ export class App implements OnInit {
   protected readonly isPerfilRoute = signal(false);
 
   constructor() {
-    // Escuchar cambios de ruta para saber si estamos en perfil
+    // Escuchar cambios de ruta para mostrar paginas standalone.
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil');
+      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil' || event.urlAfterRedirects === '/progreso');
     });
   }
 
@@ -70,6 +70,7 @@ export class App implements OnInit {
   protected readonly registerSuccess = signal('');
   protected readonly loginLoading = signal(false);
   protected readonly registerLoading = signal(false);
+  protected readonly detailLoading = signal(false);
   protected readonly currentUser = signal<AuthUser | null>(null);
   protected readonly apiMessage = signal('');
   protected readonly healthStatus = signal('Comprobando backend...');
@@ -644,8 +645,7 @@ export class App implements OnInit {
 
   protected navegarAProgreso(): void {
     this.userMenuOpen.set(false);
-    const element = document.querySelector('#historial');
-    element?.scrollIntoView({ behavior: 'smooth' });
+    this.router.navigate(['/progreso']);
   }
 
   protected intentarLogin(): void {
@@ -915,6 +915,9 @@ export class App implements OnInit {
       this.apiMessage.set('No hay una sesion activa.');
       return;
     }
+    if (this.detailLoading()) {
+      return;
+    }
 
     const payload: AgregarDetalleSesionPayload = {
       idEjercicio: this.detailForm.idEjercicio,
@@ -928,7 +931,10 @@ export class App implements OnInit {
       notas: this.detailForm.notas
     };
 
-    this.gymService.agregarDetalleSesion(session.idSesion, payload).subscribe({
+    this.detailLoading.set(true);
+    this.gymService.agregarDetalleSesion(session.idSesion, payload).pipe(
+      finalize(() => this.detailLoading.set(false))
+    ).subscribe({
       next: (detail) => {
         this.apiMessage.set(`Detalle agregado: ${detail.nombreEjercicio}.`);
       },
@@ -974,6 +980,12 @@ export class App implements OnInit {
     }
 
     this.loadHistory(user.id);
+  }
+
+  protected reservasParaEntrenamiento(): Reserva[] {
+    return this.reservations().filter((reservation) =>
+      reservation.estado === 'activa' || reservation.estado === 'confirmada'
+    );
   }
 
   private tieneReservaTraslapada(idMaquina: number): boolean {
@@ -1025,6 +1037,9 @@ export class App implements OnInit {
         this.machines.set(machines);
         if (!this.reservationForm.idMaquina && machines.length > 0) {
           this.reservationForm.idMaquina = machines[0].idMaquina;
+        }
+        if (!this.detailForm.idMaquina && machines.length > 0) {
+          this.detailForm.idMaquina = machines[0].idMaquina;
         }
       }
     });
@@ -1120,13 +1135,25 @@ export class App implements OnInit {
     this.gymService.getHistorial(idUsuario).subscribe({
       next: (history) => {
         console.log('Loaded workout history:', history);
-        this.workoutHistory.set(history);
+        this.workoutHistory.set(this.uniqueHistoryBySession(history));
       },
       error: (err) => {
         console.error('Error loading history:', err);
         this.workoutHistory.set([]);
       }
     });
+  }
+
+  private uniqueHistoryBySession(history: SesionHistorial[]): SesionHistorial[] {
+    const unique = new Map<number, SesionHistorial>();
+
+    for (const entry of history) {
+      if (!unique.has(entry.sesion.idSesion)) {
+        unique.set(entry.sesion.idSesion, entry);
+      }
+    }
+
+    return Array.from(unique.values());
   }
 
   private checkHealth(): void {
