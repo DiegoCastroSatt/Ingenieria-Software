@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostListener, OnInit, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { filter } from 'rxjs/operators';
+import { filter, finalize } from 'rxjs/operators';
 import {
   ActualizarPerfilImcPayload,
   AgregarDetalleSesionPayload,
@@ -70,6 +70,7 @@ export class App implements OnInit {
   protected readonly registerSuccess = signal('');
   protected readonly loginLoading = signal(false);
   protected readonly registerLoading = signal(false);
+  protected readonly detailLoading = signal(false);
   protected readonly currentUser = signal<AuthUser | null>(null);
   protected readonly apiMessage = signal('');
   protected readonly healthStatus = signal('Comprobando backend...');
@@ -880,6 +881,9 @@ export class App implements OnInit {
       this.apiMessage.set('No hay una sesion activa.');
       return;
     }
+    if (this.detailLoading()) {
+      return;
+    }
 
     const payload: AgregarDetalleSesionPayload = {
       idEjercicio: this.detailForm.idEjercicio,
@@ -893,7 +897,10 @@ export class App implements OnInit {
       notas: this.detailForm.notas
     };
 
-    this.gymService.agregarDetalleSesion(session.idSesion, payload).subscribe({
+    this.detailLoading.set(true);
+    this.gymService.agregarDetalleSesion(session.idSesion, payload).pipe(
+      finalize(() => this.detailLoading.set(false))
+    ).subscribe({
       next: (detail) => {
         this.apiMessage.set(`Detalle agregado: ${detail.nombreEjercicio}.`);
       },
@@ -1083,13 +1090,25 @@ export class App implements OnInit {
     this.gymService.getHistorial(idUsuario).subscribe({
       next: (history) => {
         console.log('Loaded workout history:', history);
-        this.workoutHistory.set(history);
+        this.workoutHistory.set(this.uniqueHistoryBySession(history));
       },
       error: (err) => {
         console.error('Error loading history:', err);
         this.workoutHistory.set([]);
       }
     });
+  }
+
+  private uniqueHistoryBySession(history: SesionHistorial[]): SesionHistorial[] {
+    const unique = new Map<number, SesionHistorial>();
+
+    for (const entry of history) {
+      if (!unique.has(entry.sesion.idSesion)) {
+        unique.set(entry.sesion.idSesion, entry);
+      }
+    }
+
+    return Array.from(unique.values());
   }
 
   private checkHealth(): void {

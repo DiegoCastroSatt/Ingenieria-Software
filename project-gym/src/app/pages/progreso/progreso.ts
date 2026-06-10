@@ -176,7 +176,7 @@ export class Progreso implements OnInit {
 
     this.gymService.getHistorial(idUsuario).subscribe({
       next: (history) => {
-        this.history.set(history);
+        this.history.set(this.uniqueHistoryBySession(history));
         this.loading.set(false);
       },
       error: () => {
@@ -185,6 +185,18 @@ export class Progreso implements OnInit {
         this.errorMessage.set('No se pudo cargar el progreso del usuario.');
       },
     });
+  }
+
+  private uniqueHistoryBySession(history: SesionHistorial[]): SesionHistorial[] {
+    const unique = new Map<number, SesionHistorial>();
+
+    for (const entry of history) {
+      if (!unique.has(entry.sesion.idSesion)) {
+        unique.set(entry.sesion.idSesion, entry);
+      }
+    }
+
+    return Array.from(unique.values());
   }
 
   private asPercent(value: number, total: number): number {
