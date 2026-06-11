@@ -493,6 +493,26 @@ h3 {
   justify-content: start;
 }
 
+.machine-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(150px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(23, 26, 29, 0.72);
+}
+
+.machine-filter-panel label {
+  margin: 0;
+}
+
+.machine-filter-panel button {
+  min-height: 43px;
+}
+
 .machine-card {
   border-radius: 8px;
   padding: 0;
@@ -1241,6 +1261,10 @@ select:focus {
   .section-band,
   .panel {
     padding: 18px;
+  }
+
+  .machine-filter-panel {
+    grid-template-columns: 1fr;
   }
 
   .footer {

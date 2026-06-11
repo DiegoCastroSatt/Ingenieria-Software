@@ -207,11 +207,60 @@
         }
       </div>
 
+      <div class="machine-filter-panel" aria-label="Filtros de maquinas">
+        <label>Buscar
+          <input
+            type="search"
+            [ngModel]="machineSearchTerm()"
+            (ngModelChange)="machineSearchTerm.set($event)"
+            placeholder="Nombre, descripcion o musculo"
+          />
+        </label>
+        <label>Categoria
+          <select [ngModel]="machineCategoryFilter()" (ngModelChange)="machineCategoryFilter.set($event)">
+            <option value="">Todas</option>
+            @for (category of machineCategories(); track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </label>
+        <label>Ubicacion
+          <select [ngModel]="machineLocationFilter()" (ngModelChange)="machineLocationFilter.set($event)">
+            <option value="">Todas</option>
+            @for (location of machineLocations(); track location) {
+              <option [value]="location">{{ location }}</option>
+            }
+          </select>
+        </label>
+        <label>Zona
+          <select [ngModel]="machineMuscleFilter()" (ngModelChange)="machineMuscleFilter.set($event)">
+            <option value="">Todas</option>
+            @for (muscle of machineMuscleGroups(); track muscle) {
+              <option [value]="muscle">{{ muscle }}</option>
+            }
+          </select>
+        </label>
+        <label>Estado
+          <select [ngModel]="machineStatusFilter()" (ngModelChange)="machineStatusFilter.set($event)">
+            <option value="">Todos</option>
+            <option value="disponible">Disponible</option>
+            <option value="ocupada">Ocupada</option>
+            <option value="mantencion">Mantencion</option>
+            <option value="fuera_servicio">Fuera de servicio</option>
+          </select>
+        </label>
+        <button class="secondary-action small" type="button" (click)="clearMachineFilters()" [disabled]="!hasMachineFilters()">
+          Limpiar
+        </button>
+      </div>
+
       <div class="machine-grid">
         @if (machines().length === 0) {
           <div class="empty-state">No hay maquinas cargadas o el backend no esta disponible.</div>
+        } @else if (filteredMachines().length === 0) {
+          <div class="empty-state">No hay maquinas que coincidan con los filtros seleccionados.</div>
         } @else {
-          @for (machine of machines(); track machine.idMaquina) {
+          @for (machine of filteredMachines(); track machine.idMaquina) {
             <article class="machine-card">
               <button
                 class="favorite-action"

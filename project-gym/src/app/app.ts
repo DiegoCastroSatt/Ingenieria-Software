@@ -85,6 +85,62 @@ export class App implements OnInit {
   protected readonly machines = signal<Maquina[]>([]);
   protected readonly favoriteMachines = signal<Maquina[]>([]);
   protected readonly favoriteMachinesOpen = signal(true);
+  protected readonly machineSearchTerm = signal('');
+  protected readonly machineCategoryFilter = signal('');
+  protected readonly machineLocationFilter = signal('');
+  protected readonly machineMuscleFilter = signal('');
+  protected readonly machineStatusFilter = signal('');
+  protected readonly machineCategories = computed(() => this.uniqueSorted(this.machines().map((machine) => machine.tipoMaquina)));
+  protected readonly machineLocations = computed(() => this.uniqueSorted(this.machines().map((machine) => machine.ubicacion)));
+  protected readonly machineMuscleGroups = computed(() =>
+    this.uniqueSorted(this.machines().flatMap((machine) => this.splitMachineMuscles(machine.musculosObjetivo)))
+  );
+  protected readonly hasMachineFilters = computed(() =>
+    !!this.machineSearchTerm().trim() ||
+    !!this.machineCategoryFilter() ||
+    !!this.machineLocationFilter() ||
+    !!this.machineMuscleFilter() ||
+    !!this.machineStatusFilter()
+  );
+  protected readonly filteredMachines = computed(() => {
+    const searchTerm = this.normalizeMachineText(this.machineSearchTerm());
+    const category = this.machineCategoryFilter();
+    const location = this.machineLocationFilter();
+    const muscle = this.normalizeMachineText(this.machineMuscleFilter());
+    const status = this.machineStatusFilter();
+
+    return this.machines().filter((machine) => {
+      if (category && machine.tipoMaquina !== category) {
+        return false;
+      }
+
+      if (location && machine.ubicacion !== location) {
+        return false;
+      }
+
+      if (status && machine.estado !== status) {
+        return false;
+      }
+
+      if (muscle && !this.normalizeMachineText(machine.musculosObjetivo).includes(muscle)) {
+        return false;
+      }
+
+      if (!searchTerm) {
+        return true;
+      }
+
+      const searchableText = this.normalizeMachineText([
+        machine.nombre,
+        machine.descripcion,
+        machine.tipoMaquina,
+        machine.ubicacion,
+        machine.musculosObjetivo,
+        machine.estado
+      ].join(' '));
+      return searchableText.includes(searchTerm);
+    });
+  });
   protected readonly exercises = signal<Ejercicio[]>([]);
   protected readonly reservations = signal<Reserva[]>([]);
   protected readonly activeReservations = signal<Reserva[]>([]);
@@ -784,6 +840,14 @@ export class App implements OnInit {
     this.favoriteMachinesOpen.update((isOpen) => !isOpen);
   }
 
+  protected clearMachineFilters(): void {
+    this.machineSearchTerm.set('');
+    this.machineCategoryFilter.set('');
+    this.machineLocationFilter.set('');
+    this.machineMuscleFilter.set('');
+    this.machineStatusFilter.set('');
+  }
+
   protected toggleMaquinaFavorita(machine: Maquina): void {
     const user = this.currentUser();
     if (!user) {
@@ -1107,6 +1171,26 @@ export class App implements OnInit {
         this.reservations.set([]);
       }
     });
+  }
+
+  private splitMachineMuscles(value: string): string[] {
+    return value
+      .split(/[(),/]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  private uniqueSorted(values: string[]): string[] {
+    return [...new Set(values.map((value) => value.trim()).filter(Boolean))]
+      .sort((first, second) => first.localeCompare(second));
+  }
+
+  private normalizeMachineText(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 
   private loadFavoriteMachines(idUsuario: number): void {
