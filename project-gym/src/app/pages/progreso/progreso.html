@@ -2,8 +2,8 @@
   <header class="page-header">
     <button class="back-button" type="button" (click)="volverAlInicio()">← Volver al inicio</button>
     <div class="header-left">
-      <h1>Métricas de desempeño</h1>
-      <p>{{ currentUser()?.nombre || 'Usuario' }} · Indicadores actualizados de entrenamiento</p>
+      <h1>Progreso</h1>
+      <p>{{ currentUser()?.nombre || 'Usuario' }} · Sesiones, avance y marcas personales</p>
     </div>
     <span class="badge" [class.complete]="completionPct() >= 100">{{ statusLabel() }}</span>
   </header>
@@ -12,11 +12,6 @@
     <div class="state-panel">Cargando progreso...</div>
   } @else if (errorMessage()) {
     <div class="state-panel error">{{ errorMessage() }}</div>
-  } @else if (!hasPerformanceMetrics()) {
-    <div class="state-panel empty-metrics">
-      <strong>No hay métricas registradas.</strong>
-      <span>Cuando completes una sesión, tus métricas de desempeño aparecerán actualizadas en esta sección.</span>
-    </div>
   } @else {
     <div class="grid">
       <article class="hero-card">
@@ -66,24 +61,24 @@
       </article>
 
       <article class="card blue-accent">
-        <div class="stat-icon">%</div>
-        <div class="stat-label">Promedio de avance</div>
-        <div class="stat-value blue">{{ averageProgress() }}%</div>
-        <div class="stat-sub">segun sesiones con progreso</div>
+        <div class="stat-icon">↗</div>
+        <div class="stat-label">Sesiones en progreso</div>
+        <div class="stat-value blue">{{ activeSessions() }}</div>
+        <div class="stat-sub">entrenamientos iniciados sin completar</div>
       </article>
 
       <article class="card amber-accent">
-        <div class="stat-icon">min</div>
-        <div class="stat-label">Tiempo entrenado</div>
-        <div class="stat-value amber">{{ totalMinutes() }}</div>
-        <div class="stat-sub">minutos registrados</div>
+        <div class="stat-icon">…</div>
+        <div class="stat-label">Sesiones restantes</div>
+        <div class="stat-value amber">{{ remainingSessions() }}</div>
+        <div class="stat-sub">para completar la meta de {{ totalGoal() }}</div>
       </article>
 
       <article class="card red-accent">
-        <div class="stat-icon">kcal</div>
-        <div class="stat-label">Calorias estimadas</div>
-        <div class="stat-value red">{{ totalCalories() }}</div>
-        <div class="stat-sub">acumuladas en el historial</div>
+        <div class="stat-icon">%</div>
+        <div class="stat-label">Promedio de avance</div>
+        <div class="stat-value red">{{ averageProgress() }}%</div>
+        <div class="stat-sub">{{ totalMinutes() }} min · {{ totalCalories() }} kcal registradas</div>
       </article>
 
       <article class="card chart-card">
@@ -114,12 +109,12 @@
       </article>
 
       <article class="card chart-card">
-        <div class="chart-title">Historial reciente</div>
+        <div class="chart-title">Todas las sesiones</div>
         @if (history().length === 0) {
           <div class="empty-state">Aun no hay sesiones registradas para este usuario.</div>
         } @else {
           <div class="history-list">
-            @for (entry of recentHistory(); track entry.sesion.idSesion) {
+            @for (entry of history(); track entry.sesion.idSesion) {
               <div class="history-row">
                 <div>
                   <strong>{{ entry.rutina?.nombre || 'Entrenamiento libre' }}</strong>
@@ -133,6 +128,99 @@
             }
           </div>
         }
+      </article>
+
+      <article class="card metrics-card">
+        <div class="section-heading">
+          <div>
+            <div class="chart-title">Metricas de Desempeño</div>
+            <p>Registra tus marcas por ejercicio y compara la mejora en el tiempo.</p>
+          </div>
+        </div>
+
+        <form class="metric-form" (ngSubmit)="addMetric()">
+          <label>
+            <span>Ejercicio</span>
+            <input
+              type="text"
+              name="exercise"
+              [(ngModel)]="metricForm.exercise"
+              placeholder="Press banca"
+              autocomplete="off"
+            />
+          </label>
+
+          <label>
+            <span>Peso kg</span>
+            <input
+              type="number"
+              name="valueKg"
+              [(ngModel)]="metricForm.valueKg"
+              min="1"
+              step="0.5"
+              placeholder="55"
+            />
+          </label>
+
+          <label>
+            <span>Fecha</span>
+            <input type="date" name="date" [(ngModel)]="metricForm.date" />
+          </label>
+
+          <label class="notes-field">
+            <span>Nota</span>
+            <input
+              type="text"
+              name="notes"
+              [(ngModel)]="metricForm.notes"
+              placeholder="Nueva mejor marca"
+              autocomplete="off"
+            />
+          </label>
+
+          <button class="save-button" type="submit">Agregar metrica</button>
+        </form>
+
+        @if (metricError()) {
+          <div class="form-message error">{{ metricError() }}</div>
+        }
+        @if (metricSuccess()) {
+          <div class="form-message success">{{ metricSuccess() }}</div>
+        }
+
+        <div class="metric-summary-grid">
+          @for (metric of metricSummaries(); track metric.exercise) {
+            <div class="metric-summary">
+              <span>{{ metric.exercise }}</span>
+              <strong>{{ formatKg(metric.lastKg) }}</strong>
+              <small>
+                {{ formatKg(metric.firstKg) }} → {{ formatKg(metric.lastKg) }}
+                · mejor {{ formatKg(metric.bestKg) }}
+              </small>
+              <em [class.positive]="metric.improvementKg > 0">
+                {{ formatDelta(metric.improvementKg) }} de mejora
+              </em>
+            </div>
+          }
+        </div>
+
+        <div class="metric-history">
+          <div class="chart-title">Historial de mejoria</div>
+          @for (metric of metricTimeline(); track metric.id) {
+            <div class="metric-row">
+              <div>
+                <strong>{{ metric.exercise }}</strong>
+                <span>{{ metric.date }} · {{ metric.notes || 'Sin nota' }}</span>
+              </div>
+              <div class="metric-actions">
+                <strong>{{ formatKg(metric.valueKg) }}</strong>
+                @if (!metric.id.startsWith('demo-')) {
+                  <button type="button" (click)="removeMetric(metric.id)">Eliminar</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
       </article>
     </div>
   }

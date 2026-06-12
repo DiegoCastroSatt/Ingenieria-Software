@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SesionHistorial } from '../../core/models/auth.models';
+import { MetricaFuerza, SesionHistorial } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { GymService } from '../../core/services/gym-data.service';
 
@@ -18,10 +19,29 @@ type SessionDot = {
   label: string;
 };
 
+type LiftMetric = {
+  id: string;
+  sourceId: number | null;
+  exercise: string;
+  valueKg: number;
+  date: string;
+  notes: string;
+};
+
+type LiftMetricSummary = {
+  exercise: string;
+  firstKg: number;
+  lastKg: number;
+  bestKg: number;
+  improvementKg: number;
+  count: number;
+  latestDate: string;
+};
+
 @Component({
   selector: 'app-progreso',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './progreso.html',
   styleUrl: './progreso.css',
 })
@@ -32,9 +52,23 @@ export class Progreso implements OnInit {
 
   protected readonly currentUser = this.authService.currentUser;
   protected readonly history = signal<SesionHistorial[]>([]);
+  protected readonly liftMetrics = signal<LiftMetric[]>([]);
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal('');
   protected readonly totalGoal = computed(() => Math.max(20, this.history().length));
+  protected readonly metricError = signal('');
+  protected readonly metricSuccess = signal('');
+  protected metricForm: {
+    exercise: string;
+    valueKg: number | null;
+    date: string;
+    notes: string;
+  } = {
+    exercise: '',
+    valueKg: null,
+    date: this.getTodayIso(),
+    notes: '',
+  };
 
   protected readonly completedSessions = computed(() =>
     this.history().filter((entry) => entry.sesion.estado === 'completada' || entry.progreso).length
@@ -43,8 +77,6 @@ export class Progreso implements OnInit {
   protected readonly sessionsWithProgress = computed(() =>
     this.history().filter((entry) => !!entry.progreso).length
   );
-
-  protected readonly hasPerformanceMetrics = computed(() => this.sessionsWithProgress() > 0);
 
   protected readonly activeSessions = computed(() =>
     this.history().filter((entry) => entry.sesion.estado !== 'completada' && !entry.progreso).length
@@ -88,7 +120,7 @@ export class Progreso implements OnInit {
       return 'En progreso';
     }
 
-    return this.hasPerformanceMetrics() ? 'Iniciando' : 'Sin métricas';
+    return this.history().length > 0 ? 'Iniciando' : 'Sin sesiones';
   });
 
   protected readonly bars = computed<ProgressBar[]>(() => [
@@ -149,10 +181,38 @@ export class Progreso implements OnInit {
     });
   });
 
-  protected readonly recentHistory = computed(() =>
-    [...this.history()]
-      .sort((a, b) => this.toTime(b.sesion.fechaInicio) - this.toTime(a.sesion.fechaInicio))
-      .slice(0, 6)
+  protected readonly metricSummaries = computed<LiftMetricSummary[]>(() => {
+    const groups = new Map<string, LiftMetric[]>();
+
+    for (const metric of this.visibleMetrics()) {
+      const key = this.normalizeMetricName(metric.exercise);
+      groups.set(key, [...(groups.get(key) ?? []), metric]);
+    }
+
+    return Array.from(groups.values())
+      .map((metrics) => {
+        const ordered = [...metrics].sort((a, b) => this.toTime(a.date) - this.toTime(b.date));
+        const first = ordered[0];
+        const last = ordered[ordered.length - 1];
+        const bestKg = Math.max(...ordered.map((metric) => metric.valueKg));
+
+        return {
+          exercise: last.exercise,
+          firstKg: first.valueKg,
+          lastKg: last.valueKg,
+          bestKg,
+          improvementKg: last.valueKg - first.valueKg,
+          count: ordered.length,
+          latestDate: last.date,
+        };
+      })
+      .sort((a, b) => this.toTime(b.latestDate) - this.toTime(a.latestDate));
+  });
+
+  protected readonly metricTimeline = computed(() =>
+    [...this.visibleMetrics()]
+      .sort((a, b) => this.toTime(b.date) - this.toTime(a.date))
+      .slice(0, 8)
   );
 
   ngOnInit(): void {
@@ -165,11 +225,93 @@ export class Progreso implements OnInit {
       return;
     }
 
+    this.loadMetricHistory(user.id);
     this.loadProgress(user.id);
   }
 
   protected volverAlInicio(): void {
     this.router.navigate(['/']);
+  }
+
+  protected addMetric(): void {
+    const user = this.currentUser();
+    const exercise = this.metricForm.exercise.trim();
+    const valueKg = Number(this.metricForm.valueKg);
+
+    this.metricError.set('');
+    this.metricSuccess.set('');
+
+    if (!user) {
+      this.metricError.set('Debes iniciar sesion para guardar metricas.');
+      return;
+    }
+
+    if (!exercise) {
+      this.metricError.set('Ingresa el nombre del ejercicio.');
+      return;
+    }
+
+    if (!Number.isFinite(valueKg) || valueKg <= 0) {
+      this.metricError.set('Ingresa un peso valido en kg.');
+      return;
+    }
+
+    this.gymService.crearMetricaFuerza({
+      idUsuario: user.id,
+      ejercicio: exercise,
+      pesoKg: Math.round(valueKg * 10) / 10,
+      fecha: this.metricForm.date || this.getTodayIso(),
+      notas: this.metricForm.notes.trim() || null,
+    }).subscribe({
+      next: (metric) => {
+        this.liftMetrics.set([this.mapApiMetric(metric), ...this.liftMetrics()]);
+        this.metricForm = {
+          exercise: '',
+          valueKg: null,
+          date: this.getTodayIso(),
+          notes: '',
+        };
+        this.metricSuccess.set('Metrica agregada al historial.');
+      },
+      error: () => {
+        this.metricError.set('No se pudo guardar la metrica.');
+      },
+    });
+  }
+
+  protected removeMetric(metricId: string): void {
+    const user = this.currentUser();
+
+    if (!user) {
+      return;
+    }
+
+    const metric = this.liftMetrics().find((item) => item.id === metricId);
+
+    if (!metric?.sourceId) {
+      return;
+    }
+
+    this.gymService.eliminarMetricaFuerza(metric.sourceId, user.id).subscribe({
+      next: () => {
+        this.liftMetrics.set(this.liftMetrics().filter((item) => item.id !== metricId));
+      },
+      error: () => {
+        this.metricError.set('No se pudo eliminar la metrica.');
+      },
+    });
+  }
+
+  protected formatKg(value: number): string {
+    return `${Number.isInteger(value) ? value : value.toFixed(1)} kg`;
+  }
+
+  protected formatDelta(value: number): string {
+    if (value > 0) {
+      return `+${this.formatKg(value)}`;
+    }
+
+    return this.formatKg(value);
   }
 
   private loadProgress(idUsuario: number): void {
@@ -199,6 +341,76 @@ export class Progreso implements OnInit {
     }
 
     return Array.from(unique.values());
+  }
+
+  private loadMetricHistory(idUsuario: number): void {
+    this.gymService.getMetricasFuerza(idUsuario).subscribe({
+      next: (metrics) => {
+        this.liftMetrics.set(metrics.map((metric) => this.mapApiMetric(metric)));
+      },
+      error: () => {
+        this.liftMetrics.set([]);
+        this.metricError.set('No se pudieron cargar las metricas de fuerza.');
+      },
+    });
+  }
+
+  private visibleMetrics(): LiftMetric[] {
+    if (this.liftMetrics().length > 0) {
+      return this.liftMetrics();
+    }
+
+    return [
+      {
+        id: 'demo-press-1',
+        sourceId: null,
+        exercise: 'Press banca',
+        valueKg: 50,
+        date: this.offsetDate(-21),
+        notes: 'Marca inicial',
+      },
+      {
+        id: 'demo-press-2',
+        sourceId: null,
+        exercise: 'Press banca',
+        valueKg: 55,
+        date: this.offsetDate(-2),
+        notes: 'Mejor marca',
+      },
+      {
+        id: 'demo-deadlift-1',
+        sourceId: null,
+        exercise: 'Peso muerto',
+        valueKg: 100,
+        date: this.offsetDate(-7),
+        notes: 'Mejor marca actual',
+      },
+    ];
+  }
+
+  private mapApiMetric(metric: MetricaFuerza): LiftMetric {
+    return {
+      id: String(metric.idMetrica),
+      sourceId: metric.idMetrica,
+      exercise: metric.ejercicio,
+      valueKg: Math.round(metric.pesoKg * 10) / 10,
+      date: metric.fecha,
+      notes: metric.notas ?? '',
+    };
+  }
+
+  private normalizeMetricName(value: string): string {
+    return value.trim().toLocaleLowerCase('es-CL');
+  }
+
+  private offsetDate(days: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  private getTodayIso(): string {
+    return new Date().toISOString().slice(0, 10);
   }
 
   private asPercent(value: number, total: number): number {
