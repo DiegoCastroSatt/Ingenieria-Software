@@ -144,15 +144,15 @@ export class GymService {
     return this.http.get<SesionHistorial[]>(`${this.apiUrl}/sesiones/usuario/${idUsuario}/historial`);
   }
 
-  getMetricasFuerza(idUsuario: number): Observable<Metrica[]> {
+  getMetricas(idUsuario: number): Observable<Metrica[]> {
     return this.http.get<Metrica[]>(`${this.apiUrl}/metricas/usuario/${idUsuario}`);
   }
 
-  crearMetricaFuerza(payload: CrearMetricaPayload): Observable<Metrica> {
+  crearMetrica(payload: CrearMetricaPayload): Observable<Metrica> {
     return this.http.post<Metrica>(`${this.apiUrl}/metricas`, payload);
   }
 
-  eliminarMetricaFuerza(idMetrica: number, idUsuario: number): Observable<void> {
+  eliminarMetrica(idMetrica: number, idUsuario: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/metricas/${idMetrica}`, {
       params: { idUsuario }
     });

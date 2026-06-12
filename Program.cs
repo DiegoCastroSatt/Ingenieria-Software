@@ -82,7 +82,7 @@ using (var scope = app.Services.CreateScope())
         await schemaInitializer.EnsurePerfilUsuarioPublicColumnsAsync();
         await schemaInitializer.EnsureUsuarioMaquinaFavoritaAsync();
         await schemaInitializer.EnsureReservaCancelacionesAsync();
-        await schemaInitializer.EnsureMetricasFuerzaAsync();
+        await schemaInitializer.EnsureMetricasAsync();
     }
     catch (Exception exception)
     {

@@ -5,9 +5,9 @@ namespace Softawer.Data;
 
 public class MetricasRepository(MySqlDataSource dataSource)
 {
-    public async Task<IReadOnlyList<MetricaFuerza>> ListMetricasUsuarioAsync(int idUsuario)
+    public async Task<IReadOnlyList<Metrica>> ListMetricasUsuarioAsync(int idUsuario)
     {
-        var metricas = new List<MetricaFuerza>();
+        var metricas = new List<Metrica>();
 
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
@@ -28,7 +28,7 @@ public class MetricasRepository(MySqlDataSource dataSource)
         return metricas;
     }
 
-    public async Task<MetricaFuerza> CreateMetricaAsync(CrearMetricaFuerzaRequest request)
+    public async Task<Metrica> CreateMetricaAsync(CrearMetricaRequest request)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
@@ -61,7 +61,7 @@ public class MetricasRepository(MySqlDataSource dataSource)
         return await command.ExecuteNonQueryAsync() > 0;
     }
 
-    private async Task<MetricaFuerza?> GetMetricaAsync(int idMetrica)
+    private async Task<Metrica?> GetMetricaAsync(int idMetrica)
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
@@ -77,9 +77,9 @@ public class MetricasRepository(MySqlDataSource dataSource)
         return await reader.ReadAsync() ? MapMetrica(reader) : null;
     }
 
-    private static MetricaFuerza MapMetrica(MySqlDataReader reader)
+    private static Metrica MapMetrica(MySqlDataReader reader)
     {
-        return new MetricaFuerza
+        return new Metrica
         {
             IdMetrica = reader.GetInt32("id_metrica"),
             IdUsuario = reader.GetInt32("id_usuario"),

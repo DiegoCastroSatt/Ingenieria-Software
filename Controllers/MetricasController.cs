@@ -11,13 +11,13 @@ public class MetricasController(
     MetricasRepository metricasRepository) : ControllerBase
 {
     [HttpGet("usuario/{idUsuario:int}")]
-    public async Task<ActionResult<IReadOnlyList<MetricaFuerza>>> GetMetricasUsuario(int idUsuario)
+    public async Task<ActionResult<IReadOnlyList<Metrica>>> GetMetricasUsuario(int idUsuario)
     {
         return Ok(await metricasRepository.ListMetricasUsuarioAsync(idUsuario));
     }
 
     [HttpPost]
-    public async Task<ActionResult<MetricaFuerza>> CrearMetrica([FromBody] CrearMetricaFuerzaRequest request)
+    public async Task<ActionResult<Metrica>> CrearMetrica([FromBody] CrearMetricaRequest request)
     {
         if (await usuarioRepository.GetUsuarioAsync(request.IdUsuario) is null)
         {

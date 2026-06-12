@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MetricaFuerza, SesionHistorial } from '../../core/models/auth.models';
+import { Metrica, SesionHistorial } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { GymService } from '../../core/services/gym-data.service';
 
@@ -256,7 +256,7 @@ export class Progreso implements OnInit {
       return;
     }
 
-    this.gymService.crearMetricaFuerza({
+    this.gymService.crearMetrica({
       idUsuario: user.id,
       ejercicio: exercise,
       pesoKg: Math.round(valueKg * 10) / 10,
@@ -292,7 +292,7 @@ export class Progreso implements OnInit {
       return;
     }
 
-    this.gymService.eliminarMetricaFuerza(metric.sourceId, user.id).subscribe({
+    this.gymService.eliminarMetrica(metric.sourceId, user.id).subscribe({
       next: () => {
         this.liftMetrics.set(this.liftMetrics().filter((item) => item.id !== metricId));
       },
@@ -344,7 +344,7 @@ export class Progreso implements OnInit {
   }
 
   private loadMetricHistory(idUsuario: number): void {
-    this.gymService.getMetricasFuerza(idUsuario).subscribe({
+    this.gymService.getMetricas(idUsuario).subscribe({
       next: (metrics) => {
         this.liftMetrics.set(metrics.map((metric) => this.mapApiMetric(metric)));
       },
@@ -388,7 +388,7 @@ export class Progreso implements OnInit {
     ];
   }
 
-  private mapApiMetric(metric: MetricaFuerza): LiftMetric {
+  private mapApiMetric(metric: Metrica): LiftMetric {
     return {
       id: String(metric.idMetrica),
       sourceId: metric.idMetrica,

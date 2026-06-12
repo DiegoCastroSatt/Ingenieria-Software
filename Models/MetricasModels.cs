@@ -1,6 +1,6 @@
 namespace Softawer.Models;
 
-public class MetricaFuerza
+public class Metrica
 {
     public int IdMetrica { get; set; }
     public int IdUsuario { get; set; }
@@ -11,7 +11,7 @@ public class MetricaFuerza
     public DateTime FechaCreacion { get; set; }
 }
 
-public class CrearMetricaFuerzaRequest
+public class CrearMetricaRequest
 {
     public int IdUsuario { get; set; }
     public string Ejercicio { get; set; } = string.Empty;

@@ -66,7 +66,7 @@ public class DatabaseSchemaInitializer(MySqlDataSource dataSource)
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task EnsureMetricasFuerzaAsync()
+    public async Task EnsureMetricasAsync()
     {
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
