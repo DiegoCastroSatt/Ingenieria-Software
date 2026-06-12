@@ -33,6 +33,7 @@ builder.Services.AddScoped<CatalogoRepository>();
 builder.Services.AddScoped<RutinaRepository>();
 builder.Services.AddScoped<ReservaRepository>();
 builder.Services.AddScoped<SesionEntrenamientoRepository>();
+builder.Services.AddScoped<MetricasRepository>();
 
 // Servicios de negocio
 builder.Services.AddSingleton<PasswordHashService>();
@@ -81,6 +82,7 @@ using (var scope = app.Services.CreateScope())
         await schemaInitializer.EnsurePerfilUsuarioPublicColumnsAsync();
         await schemaInitializer.EnsureUsuarioMaquinaFavoritaAsync();
         await schemaInitializer.EnsureReservaCancelacionesAsync();
+        await schemaInitializer.EnsureMetricasFuerzaAsync();
     }
     catch (Exception exception)
     {
