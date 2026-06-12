@@ -66,6 +66,26 @@ public class DatabaseSchemaInitializer(MySqlDataSource dataSource)
         await command.ExecuteNonQueryAsync();
     }
 
+    public async Task EnsureMetricasFuerzaAsync()
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS metricas_fuerza (
+                id_metrica INT AUTO_INCREMENT PRIMARY KEY,
+                id_usuario INT NOT NULL,
+                ejercicio VARCHAR(120) NOT NULL,
+                peso_kg DECIMAL(6,2) NOT NULL,
+                fecha DATE NOT NULL,
+                notas VARCHAR(255) NULL,
+                fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_metricas_fuerza_usuario_fecha (id_usuario, fecha),
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+            );
+            """;
+        await command.ExecuteNonQueryAsync();
+    }
+
     private static async Task<bool> PerfilUsuarioColumnExistsAsync(MySqlConnection connection, string columnName)
     {
         await using var command = connection.CreateCommand();
