@@ -371,6 +371,20 @@
   color: #ff6b6b;
 }
 
+.empty-metrics {
+  display: grid;
+  gap: .45rem;
+}
+
+.empty-metrics strong {
+  color: #f0ede8;
+  font-size: 1rem;
+}
+
+.empty-metrics span {
+  font-size: .9rem;
+}
+
 .green { color: #00c9a7; }
 .blue { color: #4a90e2; }
 .amber { color: #f59e0b; }

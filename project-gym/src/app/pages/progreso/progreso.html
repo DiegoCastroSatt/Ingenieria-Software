@@ -2,8 +2,8 @@
   <header class="page-header">
     <button class="back-button" type="button" (click)="volverAlInicio()">← Volver al inicio</button>
     <div class="header-left">
-      <h1>Seguimiento de Sesiones</h1>
-      <p>{{ currentUser()?.nombre || 'Usuario' }} · Historial de entrenamientos</p>
+      <h1>Métricas de desempeño</h1>
+      <p>{{ currentUser()?.nombre || 'Usuario' }} · Indicadores actualizados de entrenamiento</p>
     </div>
     <span class="badge" [class.complete]="completionPct() >= 100">{{ statusLabel() }}</span>
   </header>
@@ -12,6 +12,11 @@
     <div class="state-panel">Cargando progreso...</div>
   } @else if (errorMessage()) {
     <div class="state-panel error">{{ errorMessage() }}</div>
+  } @else if (!hasPerformanceMetrics()) {
+    <div class="state-panel empty-metrics">
+      <strong>No hay métricas registradas.</strong>
+      <span>Cuando completes una sesión, tus métricas de desempeño aparecerán actualizadas en esta sección.</span>
+    </div>
   } @else {
     <div class="grid">
       <article class="hero-card">

@@ -44,6 +44,8 @@ export class Progreso implements OnInit {
     this.history().filter((entry) => !!entry.progreso).length
   );
 
+  protected readonly hasPerformanceMetrics = computed(() => this.sessionsWithProgress() > 0);
+
   protected readonly activeSessions = computed(() =>
     this.history().filter((entry) => entry.sesion.estado !== 'completada' && !entry.progreso).length
   );
@@ -86,7 +88,7 @@ export class Progreso implements OnInit {
       return 'En progreso';
     }
 
-    return this.completedSessions() > 0 ? 'Iniciando' : 'Sin sesiones';
+    return this.hasPerformanceMetrics() ? 'Iniciando' : 'Sin métricas';
   });
 
   protected readonly bars = computed<ProgressBar[]>(() => [
