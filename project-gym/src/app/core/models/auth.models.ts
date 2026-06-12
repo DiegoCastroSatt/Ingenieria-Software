@@ -269,3 +269,21 @@ export type SesionHistorial = {
   progreso?: Progreso | null;
   detalles: DetalleSesionEntrenamiento[];
 };
+
+export type MetricaFuerza = {
+  idMetrica: number;
+  idUsuario: number;
+  ejercicio: string;
+  pesoKg: number;
+  fecha: string;
+  notas?: string | null;
+  fechaCreacion: string;
+};
+
+export type CrearMetricaFuerzaPayload = {
+  idUsuario: number;
+  ejercicio: string;
+  pesoKg: number;
+  fecha: string;
+  notas?: string | null;
+};

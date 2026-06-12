@@ -8,6 +8,7 @@ import {
   AgregarDetalleSesionPayload,
   CancelarReservaPayload,
   CompletarSesionPayload,
+  CrearMetricaPayload,
   CopiarRutinaPayload,
   CrearReservaPayload,
   CrearRutinaPayload,
@@ -20,6 +21,7 @@ import {
   IniciarSesionPayload,
   Maquina,
   MaquinaFavoritaPayload,
+  Metrica,
   PerfilUsuario,
   Reserva,
   RutinaDetalle,
@@ -140,6 +142,20 @@ export class GymService {
 
   getHistorial(idUsuario: number): Observable<SesionHistorial[]> {
     return this.http.get<SesionHistorial[]>(`${this.apiUrl}/sesiones/usuario/${idUsuario}/historial`);
+  }
+
+  getMetricasFuerza(idUsuario: number): Observable<Metrica[]> {
+    return this.http.get<Metrica[]>(`${this.apiUrl}/metricas/usuario/${idUsuario}`);
+  }
+
+  crearMetricaFuerza(payload: CrearMetricaPayload): Observable<Metrica> {
+    return this.http.post<Metrica>(`${this.apiUrl}/metricas`, payload);
+  }
+
+  eliminarMetricaFuerza(idMetrica: number, idUsuario: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/metricas/${idMetrica}`, {
+      params: { idUsuario }
+    });
   }
 
   actualizarInformacionPublica(idUsuario: number, payload: ActualizarInformacionPublicaPayload): Observable<PerfilUsuario> {
