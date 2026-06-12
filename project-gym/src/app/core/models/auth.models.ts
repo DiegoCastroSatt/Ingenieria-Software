@@ -270,7 +270,7 @@ export type SesionHistorial = {
   detalles: DetalleSesionEntrenamiento[];
 };
 
-export type MetricaFuerza = {
+export type Metrica = {
   idMetrica: number;
   idUsuario: number;
   ejercicio: string;
@@ -280,7 +280,7 @@ export type MetricaFuerza = {
   fechaCreacion: string;
 };
 
-export type CrearMetricaFuerzaPayload = {
+export type CrearMetricaPayload = {
   idUsuario: number;
   ejercicio: string;
   pesoKg: number;
