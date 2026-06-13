@@ -99,8 +99,9 @@ public class PerfilController(
     }
 
     [HttpPost("{idUsuario:int}/avatar")]
+    [Consumes("multipart/form-data")]
     [RequestSizeLimit(3 * 1024 * 1024)]
-    public async Task<ActionResult<object>> SubirAvatar(int idUsuario, [FromForm] IFormFile avatar)
+    public async Task<ActionResult<object>> SubirAvatar(int idUsuario, IFormFile avatar)
     {
         var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
         if (usuario is null)
