@@ -221,7 +221,6 @@ export class Progreso implements OnInit {
     if (!user) {
       this.loading.set(false);
       this.errorMessage.set('Debes iniciar sesion para ver tu progreso.');
-      this.router.navigate(['/']);
       return;
     }
 

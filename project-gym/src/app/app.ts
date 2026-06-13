@@ -53,11 +53,13 @@ export class App implements OnInit {
   protected readonly isPerfilRoute = signal(false);
 
   constructor() {
+    this.updateStandaloneRoute(this.router.url);
+
     // Escuchar cambios de ruta para mostrar paginas standalone.
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.isPerfilRoute.set(event.urlAfterRedirects === '/perfil' || event.urlAfterRedirects === '/progreso');
+      this.updateStandaloneRoute(event.urlAfterRedirects);
     });
   }
 
@@ -147,6 +149,11 @@ export class App implements OnInit {
   protected readonly currentSession = signal<SesionEntrenamiento | null>(null);
   protected readonly workoutHistory = signal<SesionHistorial[]>([]);
   protected readonly todayIso = this.getTodayIso();
+
+  private updateStandaloneRoute(url: string): void {
+    const path = url.split('?')[0].split('#')[0];
+    this.isPerfilRoute.set(path === '/perfil' || path === '/progreso');
+  }
 
   protected readonly catalogCardio = signal<ExerciseWithImage[]>([
     { 
