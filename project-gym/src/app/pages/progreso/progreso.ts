@@ -356,36 +356,7 @@ export class Progreso implements OnInit {
   }
 
   private visibleMetrics(): LiftMetric[] {
-    if (this.liftMetrics().length > 0) {
-      return this.liftMetrics();
-    }
-
-    return [
-      {
-        id: 'demo-press-1',
-        sourceId: null,
-        exercise: 'Press banca',
-        valueKg: 50,
-        date: this.offsetDate(-21),
-        notes: 'Marca inicial',
-      },
-      {
-        id: 'demo-press-2',
-        sourceId: null,
-        exercise: 'Press banca',
-        valueKg: 55,
-        date: this.offsetDate(-2),
-        notes: 'Mejor marca',
-      },
-      {
-        id: 'demo-deadlift-1',
-        sourceId: null,
-        exercise: 'Peso muerto',
-        valueKg: 100,
-        date: this.offsetDate(-7),
-        notes: 'Mejor marca actual',
-      },
-    ];
+    return this.liftMetrics();
   }
 
   private mapApiMetric(metric: Metrica): LiftMetric {
@@ -401,12 +372,6 @@ export class Progreso implements OnInit {
 
   private normalizeMetricName(value: string): string {
     return value.trim().toLocaleLowerCase('es-CL');
-  }
-
-  private offsetDate(days: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().slice(0, 10);
   }
 
   private getTodayIso(): string {

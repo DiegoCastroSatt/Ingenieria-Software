@@ -145,7 +145,7 @@
               type="text"
               name="exercise"
               [(ngModel)]="metricForm.exercise"
-              placeholder="Press banca"
+              placeholder="Ejercicio"
               autocomplete="off"
             />
           </label>
@@ -214,9 +214,7 @@
               </div>
               <div class="metric-actions">
                 <strong>{{ formatKg(metric.valueKg) }}</strong>
-                @if (!metric.id.startsWith('demo-')) {
-                  <button type="button" (click)="removeMetric(metric.id)">Eliminar</button>
-                }
+                <button type="button" (click)="removeMetric(metric.id)">Eliminar</button>
               </div>
             </div>
           }
