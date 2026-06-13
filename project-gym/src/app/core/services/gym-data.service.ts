@@ -6,6 +6,7 @@ import {
   ActualizarPerfilImcPayload,
   ActualizarInformacionPublicaPayload,
   AgregarDetalleSesionPayload,
+  AvatarUploadResponse,
   CancelarReservaPayload,
   CompletarSesionPayload,
   CrearMetricaPayload,
@@ -160,5 +161,12 @@ export class GymService {
 
   actualizarInformacionPublica(idUsuario: number, payload: ActualizarInformacionPublicaPayload): Observable<PerfilUsuario> {
     return this.http.put<PerfilUsuario>(`${this.apiUrl}/perfiles/${idUsuario}/informacion-publica`, payload);
+  }
+
+  subirAvatar(idUsuario: number, file: File): Observable<AvatarUploadResponse> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    return this.http.post<AvatarUploadResponse>(`${this.apiUrl}/perfiles/${idUsuario}/avatar`, formData);
   }
 }

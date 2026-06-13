@@ -11,8 +11,18 @@ public class PerfilController(
     UsuarioRepository usuarioRepository,
     PerfilUsuarioRepository perfilUsuarioRepository,
     RutinaRepository rutinaRepository,
-    ImcService imcService) : ControllerBase
+    ImcService imcService,
+    IWebHostEnvironment environment) : ControllerBase
 {
+    private static readonly HashSet<string> AllowedAvatarExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp"
+    };
+
     [HttpGet("{idUsuario:int}")]
     public async Task<ActionResult<PerfilUsuario>> GetPerfil(int idUsuario)
     {
@@ -86,5 +96,41 @@ public class PerfilController(
         var perfil = await perfilUsuarioRepository.UpsertInformacionPublicaAsync(idUsuario, request);
 
         return Ok(perfil);
+    }
+
+    [HttpPost("{idUsuario:int}/avatar")]
+    [RequestSizeLimit(3 * 1024 * 1024)]
+    public async Task<ActionResult<object>> SubirAvatar(int idUsuario, [FromForm] IFormFile avatar)
+    {
+        var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
+        if (usuario is null)
+        {
+            return NotFound("Usuario no encontrado.");
+        }
+
+        if (avatar.Length == 0 || string.IsNullOrWhiteSpace(avatar.ContentType) || !avatar.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest("Debes subir una imagen valida.");
+        }
+
+        var extension = Path.GetExtension(avatar.FileName);
+        if (!AllowedAvatarExtensions.Contains(extension))
+        {
+            return BadRequest("Formato no permitido. Usa JPG, PNG, GIF o WEBP.");
+        }
+
+        var uploadsDirectory = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), "uploads", "avatars");
+        Directory.CreateDirectory(uploadsDirectory);
+
+        var fileName = $"{idUsuario}-{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
+        var filePath = Path.Combine(uploadsDirectory, fileName);
+
+        await using (var stream = System.IO.File.Create(filePath))
+        {
+            await avatar.CopyToAsync(stream);
+        }
+
+        var avatarUrl = $"{Request.Scheme}://{Request.Host}/uploads/avatars/{fileName}";
+        return Ok(new { avatarUrl });
     }
 }

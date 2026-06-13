@@ -144,6 +144,11 @@
   background: #0056b3;
 }
 
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .result-panel {
   background: var(--bg-light, #f5f5f5);
   padding: 1rem;
@@ -274,28 +279,62 @@
   margin-top: 0.25rem;
 }
 
-.avatar-options {
+.avatar-picker {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 1rem;
   margin-top: 0.5rem;
 }
 
-.radio-option {
+.avatar-preview {
+  width: 88px;
+  height: 88px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eef2f7;
+  flex: 0 0 auto;
+}
+
+.avatar-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+}
+
+.upload-avatar-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent-color, #007bff);
+  border-radius: 4px;
+  color: var(--accent-color, #007bff);
   cursor: pointer;
   font-size: 0.9rem;
+  line-height: 1;
+  transition: all 0.2s;
 }
 
-.radio-option input[type="radio"] {
+.upload-avatar-button:hover {
+  background: var(--accent-color, #007bff);
+  color: white;
+}
+
+.upload-avatar-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
   cursor: pointer;
 }
 
-.custom-avatar-input {
-  margin-top: 0.75rem;
-  width: 100%;
+.avatar-state {
+  flex-basis: 100%;
+  color: var(--text-secondary, #000);
+  font-size: 0.82rem;
 }
 
 .footer {
@@ -322,9 +361,13 @@
     grid-column: 1;
   }
 
-  .avatar-options {
+  .avatar-picker {
+    align-items: flex-start;
+  }
+
+  .avatar-controls {
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: stretch;
   }
 
   .page-header {

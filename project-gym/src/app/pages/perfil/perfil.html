@@ -27,27 +27,21 @@
           <label class="full-width-field">
             Avatar
             <span class="field-hint">Si el avatar es considerado ofensivo o inapropiado será eliminado.</span>
-            <div class="avatar-options">
-              <label class="radio-option">
-                <input type="radio" name="avatarOption" value="ninguno" [(ngModel)]="publicInfoForm.avatarOption" />
-                <span>Ninguno</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="avatarOption" value="foto_oficial" [(ngModel)]="publicInfoForm.avatarOption" />
-                <span>Usar mi Foto Oficial</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="avatarOption" value="actual" [(ngModel)]="publicInfoForm.avatarOption" />
-                <span>Actual</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="avatarOption" value="personalizado" [(ngModel)]="publicInfoForm.avatarOption" />
-                <span>Personalizado...</span>
-              </label>
+            <div class="avatar-picker">
+              <img class="avatar-preview" [src]="publicInfoForm.avatarUrl || defaultAvatarUrl" alt="Avatar seleccionado" />
+              <div class="avatar-controls">
+                <button class="secondary-action" type="button" (click)="usarAvatarPredeterminado()">
+                  Imagen predeterminada
+                </button>
+                <label class="upload-avatar-button">
+                  <input type="file" accept="image/*" (change)="subirAvatarDesdeEscritorio($event)" />
+                  <span>Subir desde escritorio</span>
+                </label>
+                <span class="avatar-state">
+                  {{ publicInfoForm.avatarOption === 'subido' ? 'Avatar listo para guardar' : 'Se usará el avatar predeterminado' }}
+                </span>
+              </div>
             </div>
-            @if (publicInfoForm.avatarOption === 'personalizado') {
-              <input type="url" [(ngModel)]="publicInfoForm.customAvatarUrl" placeholder="https://ejemplo.com/avatar.jpg" class="custom-avatar-input" />
-            }
           </label>
 
           <!-- Teléfono Trabajo -->
@@ -75,8 +69,8 @@
           </label>
         </div>
 
-        <button class="primary-action full" type="button" (click)="guardarInformacionPublica()">
-          Guardar Información Pública
+        <button class="primary-action full" type="button" (click)="guardarInformacionPublica()" [disabled]="uploadingAvatar()">
+          {{ uploadingAvatar() ? 'Guardando...' : 'Guardar Información Pública' }}
         </button>
       </article>
     </section>

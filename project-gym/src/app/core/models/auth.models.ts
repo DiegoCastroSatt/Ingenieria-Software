@@ -102,6 +102,10 @@ export type ActualizarInformacionPublicaPayload = {
   twitter?: string | null;
 };
 
+export type AvatarUploadResponse = {
+  avatarUrl: string;
+};
+
 export type PerfilUsuario = {
   idPerfil: number;
   idUsuario: number;
