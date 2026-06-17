@@ -706,6 +706,180 @@ dd {
   align-items: start;
 }
 
+.training-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.routine-browser,
+.training-side-panel,
+.routine-editor-panel,
+.training-session-panel {
+  min-width: 0;
+}
+
+.training-side-panel {
+  position: sticky;
+  top: 118px;
+}
+
+.segmented-control {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.segmented-control button {
+  min-width: 126px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  color: var(--text);
+  background: #111416;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.segmented-control button:hover {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.segmented-control button.active {
+  color: #06100b;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.routine-actions-row,
+.routine-card-actions,
+.routine-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.routine-actions-row {
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.compact-list {
+  gap: 10px;
+}
+
+.routine-card.selectable {
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.routine-card.selectable.selected {
+  border-color: rgba(72, 213, 151, 0.7);
+  background: rgba(72, 213, 151, 0.08);
+}
+
+.routine-card-actions {
+  padding: 0 18px 16px;
+}
+
+.selected-routine-summary,
+.free-training-card,
+.registered-exercises {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.selected-routine-summary {
+  align-items: start;
+}
+
+.selected-routine-summary span,
+.selected-routine-summary small,
+.free-training-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.selected-routine-summary strong,
+.free-training-card strong {
+  display: block;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.preview-stack {
+  max-height: 260px;
+  overflow: auto;
+  margin-bottom: 14px;
+  padding-right: 4px;
+}
+
+.routine-editor-panel,
+.training-session-panel {
+  margin-top: 16px;
+}
+
+.inline-check {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
+  grid-template-columns: none;
+  gap: 10px;
+  align-items: center;
+  margin: 2px 0 16px;
+  cursor: pointer;
+}
+
+.inline-check input {
+  width: 18px;
+  min-height: 18px;
+}
+
+.routine-editor-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.routine-editor-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(110px, 0.8fr) repeat(3, minmax(90px, 0.6fr)) 40px;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.routine-editor-row label {
+  margin-bottom: 0;
+}
+
+.registered-exercises {
+  margin-top: 14px;
+}
+
+.registered-exercises h3 {
+  color: var(--text);
+}
+
 .routine-list,
 .exercise-stack,
 .history-list {
@@ -1210,12 +1384,25 @@ select:focus {
 
   .hero-panel,
   .routine-layout,
+  .training-workspace,
   .two-column {
     grid-template-columns: 1fr;
   }
 
   .personal-panel {
     position: static;
+  }
+
+  .training-side-panel {
+    position: static;
+  }
+
+  .routine-editor-row {
+    grid-template-columns: 1fr;
+  }
+
+  .routine-editor-row .trash-action {
+    justify-self: end;
   }
 
   .metric-grid {

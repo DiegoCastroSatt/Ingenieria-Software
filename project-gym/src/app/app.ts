@@ -9,11 +9,15 @@ import {
   AgregarDetalleSesionPayload,
   AuthUser,
   CompletarSesionPayload,
+  CrearRutinaPayload,
+  DetalleSesionEntrenamiento,
+  EditarRutinaPayload,
   Ejercicio,
   ImcRecommendationResponse,
   Maquina,
   Reserva,
   RutinaDetalle,
+  RutinaEjercicioRequest,
   RutinaResumen,
   SesionEntrenamiento,
   SesionHistorial
@@ -34,6 +38,21 @@ type ExerciseWithImage = {
   category: string;
   purpose: string;
   description: string;
+};
+
+type TrainingRoutineTab = 'personal' | 'predefinida' | 'libre';
+
+type RoutineExerciseDraft = RutinaEjercicioRequest & {
+  key: number;
+};
+
+type RoutineFormDraft = {
+  nombre: string;
+  descripcion: string;
+  objetivo: string;
+  dificultad: string;
+  esPublica: boolean;
+  ejercicios: RoutineExerciseDraft[];
 };
 
 @Component({
@@ -82,8 +101,12 @@ export class App implements OnInit {
   protected readonly userRoutines = signal<RutinaResumen[]>([]);
   protected readonly routineDetails = signal<Record<number, RutinaDetalle>>({});
   protected readonly expandedRoutines = signal<Record<number, boolean>>({});
-  protected readonly selectedMachineByRoutine = signal<Record<number, number>>({});
-  protected readonly extraMachinesByRoutine = signal<Record<number, Maquina[]>>({});
+  protected readonly trainingRoutineTab = signal<TrainingRoutineTab>('personal');
+  protected readonly selectedTrainingRoutineId = signal(0);
+  protected readonly routineEditorOpen = signal(false);
+  protected readonly editingRoutineId = signal<number | null>(null);
+  protected readonly sessionDetails = signal<DetalleSesionEntrenamiento[]>([]);
+  private routineExerciseDraftKey = 1;
   protected readonly machines = signal<Maquina[]>([]);
   protected readonly favoriteMachines = signal<Maquina[]>([]);
   protected readonly favoriteMachinesOpen = signal(true);
@@ -474,6 +497,15 @@ export class App implements OnInit {
     notas: ''
   };
 
+  protected routineForm: RoutineFormDraft = {
+    nombre: '',
+    descripcion: '',
+    objetivo: '',
+    dificultad: 'principiante',
+    esPublica: false,
+    ejercicios: [] as RoutineExerciseDraft[]
+  };
+
   protected detailForm = {
     idEjercicio: 0,
     idMaquina: 0,
@@ -557,7 +589,7 @@ export class App implements OnInit {
       return;
     }
 
-    document.getElementById('rutinas')?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('entrenamiento')?.scrollIntoView({ behavior: 'smooth' });
   }
 
   protected toggleMenu(): void {
@@ -572,17 +604,7 @@ export class App implements OnInit {
     }));
 
     if (!isOpen && !this.routineDetails()[routineId]) {
-      this.gymService.getRutina(routineId).subscribe({
-        next: (routine) => {
-          this.routineDetails.update((current) => ({
-            ...current,
-            [routineId]: routine
-          }));
-        },
-        error: () => {
-          this.apiMessage.set('No se pudo cargar el detalle de la rutina.');
-        }
-      });
+      this.loadRoutineDetail(routineId);
     }
   }
 
@@ -594,41 +616,150 @@ export class App implements OnInit {
     return this.routineDetails()[routineId] ?? null;
   }
 
-  protected getSelectedMachineForRoutine(routineId: number): number {
-    return this.selectedMachineByRoutine()[routineId] ?? 0;
+  protected selectTrainingTab(tab: TrainingRoutineTab): void {
+    this.trainingRoutineTab.set(tab);
+    if (tab === 'libre') {
+      this.selectRoutineForTraining(0);
+    }
   }
 
-  protected setSelectedMachineForRoutine(routineId: number, idMaquina: number): void {
-    this.selectedMachineByRoutine.update((current) => ({
-      ...current,
-      [routineId]: idMaquina
-    }));
+  protected selectRoutineForTraining(routineId: number): void {
+    this.selectedTrainingRoutineId.set(routineId);
+    this.sessionForm.idRutina = routineId;
+
+    if (routineId > 0) {
+      this.loadRoutineDetail(routineId);
+    }
   }
 
-  protected getExtraMachinesForRoutine(routineId: number): Maquina[] {
-    return this.extraMachinesByRoutine()[routineId] ?? [];
+  protected selectedTrainingRoutine(): RutinaResumen | null {
+    const selectedId = this.selectedTrainingRoutineId();
+    if (!selectedId) {
+      return null;
+    }
+
+    return [...this.userRoutines(), ...this.predefinedRoutines()].find((routine) => routine.idRutina === selectedId) ?? null;
   }
 
-  protected agregarMaquinaARutina(routineId: number): void {
-    const idMaquina = this.getSelectedMachineForRoutine(routineId);
-    const machine = this.machines().find((item) => item.idMaquina === idMaquina);
+  protected selectedTrainingRoutineDetail(): RutinaDetalle | null {
+    const selectedId = this.selectedTrainingRoutineId();
+    return selectedId ? this.getRoutineDetail(selectedId) : null;
+  }
 
-    if (!machine) {
-      this.apiMessage.set('Selecciona una maquina para agregarla a la rutina.');
+  protected openCreateRoutineEditor(): void {
+    if (!this.currentUser()) {
+      this.apiMessage.set('Debes iniciar sesion para crear una rutina.');
       return;
     }
 
-    const currentMachines = this.getExtraMachinesForRoutine(routineId);
-    if (currentMachines.some((item) => item.idMaquina === machine.idMaquina)) {
-      this.apiMessage.set('Esta maquina ya fue agregada a la rutina.');
+    this.editingRoutineId.set(null);
+    this.routineForm = this.getEmptyRoutineForm();
+    this.routineEditorOpen.set(true);
+  }
+
+  protected openEditRoutineEditor(routine: RutinaResumen): void {
+    if (!this.canDeleteRoutine(routine)) {
+      this.apiMessage.set('Solo puedes editar tus rutinas personales.');
       return;
     }
 
-    this.extraMachinesByRoutine.update((current) => ({
-      ...current,
-      [routineId]: [...currentMachines, machine]
+    this.editingRoutineId.set(routine.idRutina);
+    this.routineEditorOpen.set(true);
+    this.loadRoutineForEditor(routine.idRutina);
+  }
+
+  protected closeRoutineEditor(): void {
+    this.routineEditorOpen.set(false);
+    this.editingRoutineId.set(null);
+  }
+
+  protected addRoutineExerciseDraft(): void {
+    this.routineForm.ejercicios = [
+      ...this.routineForm.ejercicios,
+      this.createRoutineExerciseDraft(this.routineForm.ejercicios.length + 1)
+    ];
+  }
+
+  protected removeRoutineExerciseDraft(key: number): void {
+    this.routineForm.ejercicios = this.routineForm.ejercicios
+      .filter((exercise) => exercise.key !== key)
+      .map((exercise, index) => ({ ...exercise, orden: index + 1 }));
+  }
+
+  protected saveRoutineForm(): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para guardar una rutina.');
+      return;
+    }
+
+    const nombre = this.routineForm.nombre.trim();
+    if (!nombre || this.routineForm.ejercicios.length === 0) {
+      this.apiMessage.set('La rutina necesita nombre y al menos un ejercicio.');
+      return;
+    }
+
+    const ejercicios = this.routineForm.ejercicios.map(({ key, ...exercise }, index) => ({
+      ...exercise,
+      orden: index + 1,
+      dia: exercise.dia.trim() || 'General',
+      notas: exercise.notas?.trim() || null
     }));
-    this.apiMessage.set(`Maquina agregada a la rutina: ${machine.nombre}.`);
+
+    const basePayload = {
+      idUsuario: user.id,
+      nombre,
+      descripcion: this.routineForm.descripcion.trim(),
+      objetivo: this.routineForm.objetivo.trim(),
+      dificultad: this.routineForm.dificultad,
+      esPublica: this.routineForm.esPublica,
+      ejercicios
+    };
+
+    const editingId = this.editingRoutineId();
+    const request = editingId
+      ? this.gymService.editarRutina(editingId, basePayload as EditarRutinaPayload)
+      : this.gymService.crearRutina(basePayload as CrearRutinaPayload);
+
+    request.subscribe({
+      next: (routine) => {
+        this.routineDetails.update((current) => ({
+          ...current,
+          [routine.idRutina]: routine
+        }));
+        this.selectRoutineForTraining(routine.idRutina);
+        this.loadUserRoutines(user.id);
+        this.closeRoutineEditor();
+        this.apiMessage.set(editingId ? 'Rutina actualizada.' : 'Rutina creada.');
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo guardar la rutina.'));
+      }
+    });
+  }
+
+  protected copyRoutineAndPrepare(idRutina: number): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.apiMessage.set('Debes iniciar sesion para copiar una rutina.');
+      return;
+    }
+
+    this.gymService.copiarRutina(idRutina, { idUsuario: user.id, activarRutina: true }).subscribe({
+      next: (routine) => {
+        this.routineDetails.update((current) => ({
+          ...current,
+          [routine.idRutina]: routine
+        }));
+        this.trainingRoutineTab.set('personal');
+        this.selectRoutineForTraining(routine.idRutina);
+        this.loadUserRoutines(user.id);
+        this.apiMessage.set(`Rutina copiada y lista para entrenar: ${routine.nombre}.`);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo copiar la rutina.'));
+      }
+    });
   }
 
   protected toggleExercise(index: number): void {
@@ -800,21 +931,7 @@ export class App implements OnInit {
   }
 
   protected copiarRutina(idRutina: number): void {
-    const user = this.currentUser();
-    if (!user) {
-      this.apiMessage.set('Debes iniciar sesion para copiar una rutina.');
-      return;
-    }
-
-    this.gymService.copiarRutina(idRutina, { idUsuario: user.id, activarRutina: true }).subscribe({
-      next: (routine) => {
-        this.apiMessage.set(`Rutina copiada: ${routine.nombre}.`);
-        this.loadUserData(user.id);
-      },
-      error: (error) => {
-        this.apiMessage.set(this.extractError(error, 'No se pudo copiar la rutina.'));
-      }
-    });
+    this.copyRoutineAndPrepare(idRutina);
   }
 
   protected eliminarRutina(routine: RutinaResumen): void {
@@ -972,6 +1089,7 @@ export class App implements OnInit {
     }).subscribe({
       next: (session) => {
         this.currentSession.set(session);
+        this.sessionDetails.set([]);
         this.apiMessage.set(`Sesion ${session.idSesion} iniciada.`);
       },
       error: (error) => {
@@ -1007,6 +1125,7 @@ export class App implements OnInit {
       finalize(() => this.detailLoading.set(false))
     ).subscribe({
       next: (detail) => {
+        this.sessionDetails.update((details) => [...details, detail]);
         this.apiMessage.set(`Detalle agregado: ${detail.nombreEjercicio}.`);
       },
       error: (error) => {
@@ -1034,6 +1153,7 @@ export class App implements OnInit {
     this.gymService.completarSesion(session.idSesion, payload).subscribe({
       next: () => {
         this.currentSession.set(null);
+        this.sessionDetails.set([]);
         this.apiMessage.set('Sesion completada correctamente.');
         this.loadHistory(user.id);
       },
@@ -1133,6 +1253,87 @@ export class App implements OnInit {
     });
   }
 
+  private loadRoutineDetail(routineId: number): void {
+    this.gymService.getRutina(routineId).subscribe({
+      next: (routine) => {
+        this.routineDetails.update((current) => ({
+          ...current,
+          [routineId]: routine
+        }));
+      },
+      error: () => {
+        this.apiMessage.set('No se pudo cargar el detalle de la rutina.');
+      }
+    });
+  }
+
+  private loadRoutineForEditor(routineId: number): void {
+    const cachedRoutine = this.getRoutineDetail(routineId);
+    if (cachedRoutine) {
+      this.populateRoutineEditor(cachedRoutine);
+      return;
+    }
+
+    this.gymService.getRutina(routineId).subscribe({
+      next: (routine) => {
+        this.routineDetails.update((current) => ({
+          ...current,
+          [routineId]: routine
+        }));
+        this.populateRoutineEditor(routine);
+      },
+      error: (error) => {
+        this.apiMessage.set(this.extractError(error, 'No se pudo cargar la rutina para editar.'));
+      }
+    });
+  }
+
+  private populateRoutineEditor(routine: RutinaDetalle): void {
+    this.routineForm = {
+      nombre: routine.nombre,
+      descripcion: routine.descripcion ?? '',
+      objetivo: routine.objetivo ?? '',
+      dificultad: routine.dificultad ?? 'principiante',
+      esPublica: routine.esPublica,
+      ejercicios: routine.ejercicios.map((exercise, index) => ({
+        key: this.routineExerciseDraftKey++,
+        idEjercicio: exercise.idEjercicio,
+        dia: exercise.dia || 'General',
+        orden: index + 1,
+        series: exercise.series ?? null,
+        repeticiones: exercise.repeticiones ?? null,
+        duracionMinutos: exercise.duracionMinutos ?? null,
+        descansoSegundos: exercise.descansoSegundos ?? null,
+        notas: exercise.notas ?? ''
+      }))
+    };
+  }
+
+  private getEmptyRoutineForm(): RoutineFormDraft {
+    return {
+      nombre: '',
+      descripcion: '',
+      objetivo: '',
+      dificultad: 'principiante',
+      esPublica: false,
+      ejercicios: [this.createRoutineExerciseDraft(1)]
+    };
+  }
+
+  private createRoutineExerciseDraft(order: number): RoutineExerciseDraft {
+    return {
+      key: this.routineExerciseDraftKey++,
+      idEjercicio: this.exercises()[0]?.idEjercicio ?? 0,
+      dia: 'General',
+      orden: order,
+      series: 3,
+      repeticiones: 10,
+      duracionMinutos: null,
+      descansoSegundos: 60,
+      notas: ''
+    };
+  }
+
   private loadUserData(idUsuario: number): void {
     console.log('Loading user data for ID:', idUsuario);
     this.loadUserRoutines(idUsuario);
@@ -1158,6 +1359,7 @@ export class App implements OnInit {
         this.userRoutines.set(routines);
         if (!this.sessionForm.idRutina && routines.length > 0) {
           this.sessionForm.idRutina = routines[0].idRutina;
+          this.selectedTrainingRoutineId.set(routines[0].idRutina);
         }
       },
       error: (err) => {
