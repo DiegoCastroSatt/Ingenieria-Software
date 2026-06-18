@@ -56,6 +56,30 @@ Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cli
 - Monitoreo de conectividad con la base de datos
 Historias de Usuario y sus Criterios de Aceptación
 
+## Codigos HTTP de la API
+
+La API usa codigos HTTP para diferenciar caminos exitosos, errores de validacion, permisos y conflictos de negocio. El frontend muestra el codigo entre parentesis junto a un mensaje entendible para el usuario, sin exponer errores internos de base de datos ni stack traces.
+
+### Codigos usados
+- `200 OK`: consulta o accion exitosa que devuelve datos. Ejemplos: listar maquinas, iniciar sesion, completar sesion.
+- `201 Created`: recurso creado correctamente. Ejemplos: crear reserva, crear rutina personalizada.
+- `204 No Content`: accion exitosa sin cuerpo de respuesta. Ejemplos: eliminar rutina o metrica.
+- `400 Bad Request`: datos invalidos o incompletos. Ejemplos: avatar invalido, peso de metrica menor o igual a cero, usuario obligatorio.
+- `401 Unauthorized`: credenciales invalidas. Ejemplo: login con usuario o contrasena incorrectos.
+- `403 Forbidden`: el usuario existe, pero no tiene permiso para la accion. Ejemplos: editar o eliminar una rutina que no le pertenece.
+- `404 Not Found`: recurso inexistente. Ejemplos: usuario, maquina, reserva, rutina, sesion, ejercicio o metrica no encontrada.
+- `409 Conflict`: una regla de negocio bloquea la operacion. Ejemplos: reserva duplicada, reserva no cancelable, sesion que no esta en progreso.
+- `503 Service Unavailable`: un servicio requerido no esta disponible. Ejemplo: health check con base de datos no disponible.
+
+### Ejemplos de mensajes al usuario
+- Reserva con horario ocupado: `No se pudo crear la reserva. (409) Ya existe una reserva en ese horario.`
+- Rutina ajena: `No se pudo eliminar la rutina. (403) Solo puedes eliminar rutinas propias.`
+- Usuario inexistente: `No se pudo calcular el IMC. (404) Usuario no encontrado.`
+- Avatar invalido: `No se pudo subir el avatar. (400) Formato no permitido. Usa JPG, PNG, GIF o WEBP.`
+- Servicio no disponible: `No se pudo conectar con el servidor. (503) Intenta nuevamente mas tarde.`
+
+Los errores internos se sanitizan antes de mostrarse. No se deben mostrar nombres de tablas, mensajes SQL, rutas internas del servidor ni trazas de ejecucion al usuario final.
+
 ## Historias de Usuario y Criterios de Aceptacion
 1. Como usuario, quiero poder acceder a mi progreso a lo largo del tiempo.
 

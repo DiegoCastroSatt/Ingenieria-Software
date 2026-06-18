@@ -14,11 +14,13 @@ public class SesionesEntrenamientoController(
     SesionEntrenamientoService sesionEntrenamientoService) : ControllerBase
 {
     [HttpPost]
+    [ProducesResponseType(typeof(SesionEntrenamiento), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<SesionEntrenamiento>> IniciarSesion([FromBody] IniciarSesionRequest request)
     {
         if (await usuarioRepository.GetUsuarioAsync(request.IdUsuario) is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         var sesion = sesionEntrenamientoService.CrearSesion(request);
@@ -26,22 +28,25 @@ public class SesionesEntrenamientoController(
     }
 
     [HttpPost("{idSesion:int}/detalles")]
+    [ProducesResponseType(typeof(DetalleSesionEntrenamiento), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DetalleSesionEntrenamiento>> AgregarDetalle(int idSesion, [FromBody] AgregarDetalleSesionRequest request)
     {
         var sesion = await sesionEntrenamientoRepository.GetSesionAsync(idSesion);
         if (sesion is null)
         {
-            return NotFound("Sesion no encontrada.");
+            return ApiError.NotFound(this, "Sesion no encontrada.");
         }
 
         if (sesion.Estado != "en_progreso")
         {
-            return Conflict("Solo se pueden agregar ejercicios a sesiones en progreso.");
+            return ApiError.Conflict(this, "Solo se pueden agregar ejercicios a sesiones en progreso.");
         }
 
         if (!(await catalogoRepository.ListEjerciciosAsync()).Any(ejercicio => ejercicio.IdEjercicio == request.IdEjercicio))
         {
-            return NotFound("Ejercicio no encontrado.");
+            return ApiError.NotFound(this, "Ejercicio no encontrado.");
         }
 
         var detalle = sesionEntrenamientoService.CrearDetalle(idSesion, request);
@@ -49,12 +54,15 @@ public class SesionesEntrenamientoController(
     }
 
     [HttpPost("{idSesion:int}/completar")]
+    [ProducesResponseType(typeof(SesionEntrenamiento), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<SesionEntrenamiento>> CompletarSesion(int idSesion, [FromBody] CompletarSesionRequest request)
     {
         var sesion = await sesionEntrenamientoRepository.GetSesionAsync(idSesion);
         if (sesion is null)
         {
-            return NotFound("Sesion no encontrada.");
+            return ApiError.NotFound(this, "Sesion no encontrada.");
         }
 
         try
@@ -63,7 +71,7 @@ public class SesionesEntrenamientoController(
         }
         catch (InvalidOperationException exception)
         {
-            return Conflict(exception.Message);
+            return ApiError.Conflict(this, exception.Message);
         }
 
         await sesionEntrenamientoRepository.CompleteSesionAsync(sesion, request);
@@ -71,6 +79,7 @@ public class SesionesEntrenamientoController(
     }
 
     [HttpGet("usuario/{idUsuario:int}/historial")]
+    [ProducesResponseType(typeof(IReadOnlyList<SesionHistorialResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<SesionHistorialResponse>>> GetHistorial(int idUsuario)
     {
         return Ok(await sesionEntrenamientoRepository.GetHistorialUsuarioAsync(idUsuario));

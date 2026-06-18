@@ -9,6 +9,8 @@ namespace Softawer.Controllers;
 public class HealthController(DatabaseHealthRepository healthRepository) : ControllerBase
 {
     [HttpGet]
+    [ProducesResponseType(typeof(HealthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<HealthResponse>> Get()
     {
         try
@@ -16,12 +18,9 @@ public class HealthController(DatabaseHealthRepository healthRepository) : Contr
             await healthRepository.PingAsync();
             return Ok(new HealthResponse("ok", "API and database connection are available."));
         }
-        catch (Exception exception)
+        catch
         {
-            return Problem(
-                detail: exception.Message,
-                title: "Database connection failed",
-                statusCode: StatusCodes.Status503ServiceUnavailable);
+            return ApiError.ServiceUnavailable(this, "No se pudo verificar la conexion con los servicios requeridos.");
         }
     }
 }

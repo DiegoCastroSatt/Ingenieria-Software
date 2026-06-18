@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { GymService } from '../../core/services/gym-data.service';
 import { ActualizarPerfilImcPayload, ActualizarInformacionPublicaPayload, HistorialImc, ImcRecommendationResponse, PerfilUsuario, RutinaResumen } from '../../core/models/auth.models';
+import { formatApiError } from '../../core/utils/api-error';
 
 @Component({
   selector: 'app-perfil',
@@ -176,11 +177,8 @@ export class Perfil {
     });
   }
 
-  private extractError(error: any, fallback: string): string {
-    if (typeof error === 'string') return error;
-    if (error?.error?.title) return error.error.title;
-    if (error?.error?.detail) return error.error.detail;
-    return fallback;
+  private extractError(error: unknown, fallback: string): string {
+    return formatApiError(error, fallback);
   }
 
   private guardarInformacionPublicaConAvatar(avatarUrl: string | null): void {

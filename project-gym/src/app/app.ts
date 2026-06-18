@@ -24,6 +24,7 @@ import {
 } from './core/models/auth.models';
 import { GymService } from './core/services/gym-data.service';
 import { AuthService } from './core/services/auth.service';
+import { formatApiError } from './core/utils/api-error';
 
 type DailyExercise = {
   name: string;
@@ -1457,27 +1458,6 @@ export class App implements OnInit {
   }
 
   private extractError(error: HttpErrorResponse, fallback: string): string {
-    const normalize = (message: string): string => {
-      if (message.includes('reserva_cancelaciones') && message.includes("doesn't exist")) {
-        return 'Falta crear la tabla de cancelaciones. Ejecuta database.sql/AddReservaCancelaciones.sql y vuelve a intentar.';
-      }
-
-      const compactMessage = message.replace(/\s+/g, ' ').trim();
-      return compactMessage.length > 180 ? `${compactMessage.slice(0, 177)}...` : compactMessage;
-    };
-
-    if (typeof error.error === 'string') {
-      return normalize(error.error);
-    }
-
-    if (error.error?.title) {
-      return normalize(error.error.title);
-    }
-
-    if (error.error?.detail) {
-      return normalize(error.error.detail);
-    }
-
-    return fallback;
+    return formatApiError(error, fallback);
   }
 }

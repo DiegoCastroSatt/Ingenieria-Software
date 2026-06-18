@@ -14,29 +14,34 @@ public class ReservasController(
     ReservaPolicyService reservaPolicyService) : ControllerBase
 {
     [HttpGet("usuario/{idUsuario:int}")]
+    [ProducesResponseType(typeof(IReadOnlyList<Reserva>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<Reserva>>> GetReservasUsuario(int idUsuario)
     {
         return Ok(await reservaRepository.ListReservasUsuarioAsync(idUsuario));
     }
 
     [HttpGet("activas")]
+    [ProducesResponseType(typeof(IReadOnlyList<Reserva>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<Reserva>>> GetReservasActivas([FromQuery] DateOnly fechaReserva)
     {
         return Ok(await reservaRepository.ListReservasActivasPorFechaAsync(fechaReserva));
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(Reserva), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<Reserva>> CrearReserva([FromBody] CrearReservaRequest request)
     {
         if (await usuarioRepository.GetUsuarioAsync(request.IdUsuario) is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         var maquina = await catalogoRepository.GetMaquinaAsync(request.IdMaquina);
         if (maquina is null)
         {
-            return NotFound("Maquina no encontrada.");
+            return ApiError.NotFound(this, "Maquina no encontrada.");
         }
 
         var fechaActual = DateOnly.FromDateTime(DateTime.Today);
@@ -44,7 +49,7 @@ public class ReservasController(
         var error = reservaPolicyService.ValidarReserva(maquina, reservasActivas, request, fechaActual);
         if (error is not null)
         {
-            return Conflict(error);
+            return ApiError.Conflict(this, error);
         }
 
         var reserva = await reservaRepository.CreateReservaAsync(request);
@@ -52,23 +57,27 @@ public class ReservasController(
     }
 
     [HttpPost("{idReserva:int}/cancelar")]
+    [ProducesResponseType(typeof(Reserva), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<Reserva>> CancelarReserva(int idReserva, [FromBody] CancelarReservaRequest request)
     {
         if (request.IdUsuario <= 0)
         {
-            return BadRequest("El usuario es obligatorio.");
+            return ApiError.BadRequest(this, "El usuario es obligatorio.");
         }
 
         var reserva = await reservaRepository.GetReservaAsync(idReserva);
         if (reserva is null)
         {
-            return NotFound("Reserva no encontrada.");
+            return ApiError.NotFound(this, "Reserva no encontrada.");
         }
 
         var error = reservaPolicyService.ValidarCancelacion(reserva, request.IdUsuario, DateOnly.FromDateTime(DateTime.Today));
         if (error is not null)
         {
-            return Conflict(error);
+            return ApiError.Conflict(this, error);
         }
 
         return Ok(await reservaRepository.CancelReservaAsync(reserva));

@@ -20,6 +20,7 @@ var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
 
 // Servicios
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton(new MySqlDataSource(connectionString));
@@ -99,6 +100,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(CorsPolicyName);
 app.UseStaticFiles();
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

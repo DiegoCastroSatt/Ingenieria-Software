@@ -24,37 +24,43 @@ public class PerfilController(
     };
 
     [HttpGet("{idUsuario:int}")]
+    [ProducesResponseType(typeof(PerfilUsuario), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PerfilUsuario>> GetPerfil(int idUsuario)
     {
         var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
         if (usuario is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         var perfil = await perfilUsuarioRepository.GetPerfilAsync(idUsuario);
-        return perfil is null ? NotFound("Perfil no encontrado.") : Ok(perfil);
+        return perfil is null ? ApiError.NotFound(this, "Perfil no encontrado.") : Ok(perfil);
     }
 
     [HttpGet("{idUsuario:int}/historial-imc")]
+    [ProducesResponseType(typeof(IReadOnlyList<HistorialImc>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IReadOnlyList<HistorialImc>>> GetHistorialImc(int idUsuario)
     {
         var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
         if (usuario is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         return Ok(await perfilUsuarioRepository.ListHistorialImcUsuarioAsync(idUsuario));
     }
 
     [HttpPost("{idUsuario:int}/imc")]
+    [ProducesResponseType(typeof(ImcRecommendationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ImcRecommendationResponse>> ActualizarPerfilImc(int idUsuario, [FromBody] ActualizarPerfilImcRequest request)
     {
         var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
         if (usuario is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         var perfil = await perfilUsuarioRepository.UpsertPerfilAsync(idUsuario, request);
@@ -73,24 +79,28 @@ public class PerfilController(
     }
 
     [HttpGet("{idUsuario:int}/recomendaciones")]
+    [ProducesResponseType(typeof(IReadOnlyList<RutinaResumenResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IReadOnlyList<RutinaResumenResponse>>> GetRecomendaciones(int idUsuario)
     {
         var categoriaImc = await perfilUsuarioRepository.GetCategoriaImcActualAsync(idUsuario);
         if (string.IsNullOrWhiteSpace(categoriaImc))
         {
-            return NotFound("El usuario no tiene historial IMC registrado.");
+            return ApiError.NotFound(this, "El usuario no tiene historial IMC registrado.");
         }
 
         return Ok(await rutinaRepository.ListRutinasRecomendadasAsync(categoriaImc));
     }
 
     [HttpPut("{idUsuario:int}/informacion-publica")]
+    [ProducesResponseType(typeof(PerfilUsuario), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PerfilUsuario>> ActualizarInformacionPublica(int idUsuario, [FromBody] ActualizarInformacionPublicaRequest request)
     {
         var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
         if (usuario is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         var perfil = await perfilUsuarioRepository.UpsertInformacionPublicaAsync(idUsuario, request);
@@ -101,23 +111,26 @@ public class PerfilController(
     [HttpPost("{idUsuario:int}/avatar")]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(3 * 1024 * 1024)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<object>> SubirAvatar(int idUsuario, IFormFile avatar)
     {
         var usuario = await usuarioRepository.GetUsuarioAsync(idUsuario);
         if (usuario is null)
         {
-            return NotFound("Usuario no encontrado.");
+            return ApiError.NotFound(this, "Usuario no encontrado.");
         }
 
         if (avatar.Length == 0 || string.IsNullOrWhiteSpace(avatar.ContentType) || !avatar.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
         {
-            return BadRequest("Debes subir una imagen valida.");
+            return ApiError.BadRequest(this, "Debes subir una imagen valida.");
         }
 
         var extension = Path.GetExtension(avatar.FileName);
         if (!AllowedAvatarExtensions.Contains(extension))
         {
-            return BadRequest("Formato no permitido. Usa JPG, PNG, GIF o WEBP.");
+            return ApiError.BadRequest(this, "Formato no permitido. Usa JPG, PNG, GIF o WEBP.");
         }
 
         var uploadsDirectory = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), "uploads", "avatars");

@@ -13,17 +13,20 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
 {
     [HttpPost("login")]
     [HttpPost("/login")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest login)
     {
         if (string.IsNullOrWhiteSpace(login.Nombre) || string.IsNullOrWhiteSpace(login.Password))
         {
-            return BadRequest("Debes ingresar usuario y contrasena.");
+            return ApiError.BadRequest(this, "Debes ingresar usuario y contrasena.");
         }
 
         var usuario = await usuarioRepository.GetByLoginIdentifierAsync(login.Nombre.Trim());
         if (usuario is null || !passwordHashService.VerifyPassword(login.Password.Trim(), usuario.ContrasenaHash))
         {
-            return BadRequest("Usuario o contrasena incorrectos.");
+            return ApiError.Unauthorized(this, "Usuario o contrasena incorrectos.");
         }
 
         var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Rol);
@@ -45,6 +48,9 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
 
     [HttpPost("register")]
     [HttpPost("/register")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
         var validationError = ValidateRegister(request);
@@ -55,7 +61,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
 
         if (await usuarioRepository.ExistsByCorreoOrRutAsync(request.Correo.Trim(), request.Rut.Trim()))
         {
-            return BadRequest("Ya existe un usuario con ese correo o RUT.");
+            return ApiError.Conflict(this, "Ya existe un usuario con ese correo o RUT.");
         }
 
         var usuario = await usuarioRepository.CreateUsuarioAsync(new Usuario
@@ -91,18 +97,18 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             string.IsNullOrWhiteSpace(request.Correo) ||
             string.IsNullOrWhiteSpace(request.Password))
         {
-            return BadRequest("Todos los campos son obligatorios.");
+            return ApiError.BadRequest(this, "Todos los campos son obligatorios.");
         }
 
         // Simple regex para validar formato básico de email
         if (!Regex.IsMatch(request.Correo.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
-            return BadRequest("El correo no tiene un formato valido.");
+            return ApiError.BadRequest(this, "El correo no tiene un formato valido.");
         }
 
         if (request.Password.Trim().Length < 4)
         {
-            return BadRequest("La contrasena debe tener al menos 4 caracteres.");
+            return ApiError.BadRequest(this, "La contrasena debe tener al menos 4 caracteres.");
         }
 
         return null;
