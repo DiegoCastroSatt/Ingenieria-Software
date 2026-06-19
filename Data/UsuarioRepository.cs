@@ -73,12 +73,13 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            INSERT INTO usuarios (nombre, rut, correo, contrasena_hash, rol)
+            INSERT INTO usuarios (nombre, rut, correo, edad, contrasena_hash, rol)
             VALUES (@nombre, @rut, @correo, @contrasenaHash, @rol);
             """;
         command.Parameters.AddWithValue("@nombre", usuario.Nombre);
         command.Parameters.AddWithValue("@rut", usuario.Rut);
         command.Parameters.AddWithValue("@correo", usuario.Correo);
+        command.Parameters.AddWithValue("@edad", usuario.Edad);
         command.Parameters.AddWithValue("@contrasenaHash", usuario.ContrasenaHash);
         command.Parameters.AddWithValue("@rol", usuario.Rol);
         await command.ExecuteNonQueryAsync();
