@@ -42,7 +42,7 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
+            SELECT id_usuario, nombre, rut, correo, edad, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
             FROM usuarios
             WHERE nombre = @identificador OR correo = @identificador
             LIMIT 1;
