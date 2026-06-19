@@ -22,6 +22,7 @@ public class AuthUserResponse
     public string Nombre { get; set; } = string.Empty;
     public string Correo { get; set; } = string.Empty;
     public string Nacionalidad { get; set; } = string.Empty;
+    public int Edad { get; set; } 
     public string Rol { get; set; } = string.Empty;
 }
 
