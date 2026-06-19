@@ -8,6 +8,7 @@ public class Usuario
     public string Correo { get; set; } = string.Empty;
     public string ContrasenaHash { get; set; } = string.Empty;
     public string Nacionalidad { get; set; } = string.Empty;
+    public int Edad { get; set; }
     public string Rol { get; set; } = "usuario";
     public DateTime FechaCreacion { get; set; }
     public DateTime FechaActualizacion { get; set; }
