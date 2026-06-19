@@ -474,6 +474,7 @@ export class App implements OnInit {
     nombre: '',
     rut: '',
     correo: '',
+    edad: '',
     password: ''
   };
 
