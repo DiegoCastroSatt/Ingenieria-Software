@@ -96,7 +96,7 @@ public class UsuarioRepository(MySqlDataSource dataSource)
             Nombre = reader.GetString("nombre"),
             Rut = reader.GetString("rut"),
             Correo = reader.GetString("correo"),
-            Edad = reader.GetInt32("edad"),
+            Edad = reader.GetString("edad"),
             ContrasenaHash = reader.GetString("contrasena_hash"),
             Rol = reader.GetString("rol"),
             FechaCreacion = reader.GetDateTime("fecha_creacion"),
