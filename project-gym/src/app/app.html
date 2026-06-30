@@ -753,6 +753,8 @@
       <label>Nombre completo<input type="text" [(ngModel)]="registerForm.nombre" /></label>
       <label>RUT<input type="text" [(ngModel)]="registerForm.rut" /></label>
       <label>Correo<input type="email" [(ngModel)]="registerForm.correo" /></label>
+      <label>Edad<input type="text" [(ngModel)]="registerForm.edad" /></label>
+
       <label>Contrasena<input type="password" [(ngModel)]="registerForm.password" /></label>
       <button class="primary-action full" type="button" (click)="registrarUsuario()" [disabled]="registerLoading()">
         {{ registerLoading() ? 'Creando...' : 'Crear cuenta' }}

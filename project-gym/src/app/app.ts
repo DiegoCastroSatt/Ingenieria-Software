@@ -474,6 +474,7 @@ export class App implements OnInit {
     nombre: '',
     rut: '',
     correo: '',
+    edad: '',
     password: ''
   };
 
@@ -875,6 +876,7 @@ export class App implements OnInit {
       nombre: this.registerForm.nombre.trim(),
       rut: this.registerForm.rut.trim(),
       correo: this.registerForm.correo.trim(),
+      edad: this.registerForm.edad.trim(),
       password: this.registerForm.password.trim()
     };
 

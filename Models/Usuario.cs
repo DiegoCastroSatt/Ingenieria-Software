@@ -6,6 +6,7 @@ public class Usuario
     public string Nombre { get; set; } = string.Empty;
     public string Rut { get; set; } = string.Empty;
     public string Correo { get; set; } = string.Empty;
+    public int Edad {get; set; }
     public string ContrasenaHash { get; set; } = string.Empty;
     public string Nacionalidad { get; set; } = string.Empty;
     public string Rol { get; set; } = "usuario";

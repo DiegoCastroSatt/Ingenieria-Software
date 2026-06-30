@@ -21,7 +21,7 @@ public class JwtService
             : 1440; // 24 horas por defecto
     }
 
-    public string GenerateToken(int userId, string nombre, string correo, string rol)
+    public string GenerateToken(int userId, string nombre, string correo, int edad, string rol)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -31,6 +31,7 @@ public class JwtService
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Name, nombre),
             new Claim(ClaimTypes.Email, correo),
+            
             new Claim(ClaimTypes.Role, rol)
         };
 

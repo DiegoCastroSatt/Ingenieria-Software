@@ -29,7 +29,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             return ApiError.Unauthorized(this, "Usuario o contrasena incorrectos.");
         }
 
-        var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Rol);
+        var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Edad, usuario.Rol);
 
         return Ok(new AuthResponse
         {
@@ -40,6 +40,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
                 Id = usuario.IdUsuario,
                 Nombre = usuario.Nombre,
                 Correo = usuario.Correo,
+                Edad = usuario.Edad,
                 Nacionalidad = usuario.Nacionalidad,
                 Rol = usuario.Rol
             }
@@ -69,13 +70,14 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
             Nombre = request.Nombre.Trim(),
             Rut = request.Rut.Trim(),
             Correo = request.Correo.Trim(),
+            Edad = request.Edad,
             Nacionalidad = request.Nacionalidad.Trim(),
             Rol = string.IsNullOrWhiteSpace(request.Rol) ? "usuario" : request.Rol.Trim(),
             ContrasenaHash = passwordHashService.HashPassword(request.Password.Trim())
         });
 
-        var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Rol);
-
+        var token = jwtService.GenerateToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Edad, usuario.Rol);
+      
         return Ok(new AuthResponse
         {
             Message = "Usuario registrado correctamente.",
@@ -85,6 +87,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
                 Id = usuario.IdUsuario,
                 Nombre = usuario.Nombre,
                 Correo = usuario.Correo,
+                Edad = usuario.Edad,
                 Rol = usuario.Rol
             }
         });
@@ -95,6 +98,7 @@ public class AuthController(UsuarioRepository usuarioRepository, PasswordHashSer
         if (string.IsNullOrWhiteSpace(request.Nombre) ||
             string.IsNullOrWhiteSpace(request.Rut) ||
             string.IsNullOrWhiteSpace(request.Correo) ||
+
             string.IsNullOrWhiteSpace(request.Password))
         {
             return ApiError.BadRequest(this, "Todos los campos son obligatorios.");

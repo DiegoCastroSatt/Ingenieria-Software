@@ -10,6 +10,7 @@ export type AuthUser = {
   id: number;
   nombre: string;
   correo: string;
+  edad: number;
   rol: string;
 };
 

@@ -10,7 +10,7 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
+            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion, edad
             FROM usuarios
             WHERE id_usuario = @idUsuario
             LIMIT 1;
@@ -26,7 +26,7 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
+            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion, edad
             FROM usuarios
             WHERE correo = @correo
             LIMIT 1;
@@ -42,7 +42,7 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion
+            SELECT id_usuario, nombre, rut, correo, contrasena_hash, rol, fecha_creacion, fecha_actualizacion, edad
             FROM usuarios
             WHERE nombre = @identificador OR correo = @identificador
             LIMIT 1;
@@ -73,12 +73,13 @@ public class UsuarioRepository(MySqlDataSource dataSource)
         await using var connection = await dataSource.OpenConnectionAsync();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-            INSERT INTO usuarios (nombre, rut, correo, contrasena_hash, rol)
-            VALUES (@nombre, @rut, @correo, @contrasenaHash, @rol);
+            INSERT INTO usuarios (nombre, rut, correo, edad, contrasena_hash, rol)
+            VALUES (@nombre, @rut, @correo, @edad, @contrasenaHash, @rol);
             """;
         command.Parameters.AddWithValue("@nombre", usuario.Nombre);
         command.Parameters.AddWithValue("@rut", usuario.Rut);
         command.Parameters.AddWithValue("@correo", usuario.Correo);
+        command.Parameters.AddWithValue("@edad", usuario.Edad);
         command.Parameters.AddWithValue("@contrasenaHash", usuario.ContrasenaHash);
         command.Parameters.AddWithValue("@rol", usuario.Rol);
         await command.ExecuteNonQueryAsync();
@@ -95,6 +96,7 @@ public class UsuarioRepository(MySqlDataSource dataSource)
             Nombre = reader.GetString("nombre"),
             Rut = reader.GetString("rut"),
             Correo = reader.GetString("correo"),
+            Edad = reader.GetInt32("edad"),
             ContrasenaHash = reader.GetString("contrasena_hash"),
             Rol = reader.GetString("rol"),
             FechaCreacion = reader.GetDateTime("fecha_creacion"),
