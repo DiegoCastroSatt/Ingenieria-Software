@@ -19,9 +19,9 @@ jobs:
   build-and-test:
     name: "Build & Test Angular"
     runs-on: ubuntu-latest
-    #strategy:
-     # matrix:
-      #  node-version: [22, 24]
+    strategy:
+      matrix:
+        node-version: [22, 24]
     steps:
       - name: "Checkout del código fuente"
         uses: actions/checkout@v4
