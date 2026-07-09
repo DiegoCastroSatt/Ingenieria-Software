@@ -1,20 +1,32 @@
-name: "CI — Dotnet Best Practices"
+name: "CI - .NET"
+
 on:
   pull_request:
     branches: [main]
     paths:
-      - "DotnetBestPractices/**"
+      - "*.cs"
+      - "*.csproj"
+      - "**/*.cs"
+      - "**/*.csproj"
+      - "*.sln"
       - ".github/workflows/dotnet-ci.yml"
   push:
     branches: [main]
     paths:
-      - "DotnetBestPractices/**"
+      - "*.cs"
+      - "*.csproj"
+      - "**/*.cs"
+      - "**/*.csproj"
+      - "*.sln"
       - ".github/workflows/dotnet-ci.yml"
+
 permissions:
   contents: read
+
 concurrency:
   group: dotnet-ci-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: "Build & Test .NET"
@@ -22,9 +34,10 @@ jobs:
     env:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
-      INGENIERIA-SOFTWARE: DotnetBestPractices
+      BACKEND_PROJECT: Softawer.csproj
+      TEST_PROJECT: Softawer.TestRunner/Softawer.TestRunner.csproj
     steps:
-      - name: "Checkout del código fuente"
+      - name: "Checkout del codigo fuente"
         uses: actions/checkout@v4
 
       - name: "Configurar .NET SDK 8.0"
@@ -33,32 +46,29 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: "Restaurar dependencias NuGet"
-        working-directory: ${{ env.INGENIERIA-SOFTWARE }}
         run: |
           echo "Restaurando paquetes NuGet para el proyecto API..."
-          dotnet restore DotnetBestPractices.Api/DotnetBestPractices.Api.csproj
+          dotnet restore ${{ env.BACKEND_PROJECT }}
 
           echo "Restaurando paquetes NuGet para el proyecto de Tests..."
-          dotnet restore DotnetBestPractices.Tests/DotnetBestPractices.Tests.csproj
+          dotnet restore ${{ env.TEST_PROJECT }}
 
-      - name: "Build — Compilar proyecto en modo Release"
-        working-directory: ${{ env.INGENIERIA-SOFTWARE }}
+      - name: "Build - Compilar proyecto en modo Release"
         run: |
-          echo "Compilando DotnetBestPractices.Api..."
-          dotnet build DotnetBestPractices.Api/DotnetBestPractices.Api.csproj \
+          echo "Compilando Softawer..."
+          dotnet build ${{ env.BACKEND_PROJECT }} \
             --no-restore \
             --configuration Release \
             --warnaserror
 
-          echo "Compilando DotnetBestPractices.Tests..."
-          dotnet build DotnetBestPractices.Tests/DotnetBestPractices.Tests.csproj \
+          echo "Compilando Softawer.TestRunner..."
+          dotnet build ${{ env.TEST_PROJECT }} \
             --no-restore \
             --configuration Release
 
-      - name: "Test — Ejecutar pruebas unitarias"
-        working-directory: ${{ env.INGENIERIA-SOFTWARE }}
+      - name: "Test - Ejecutar pruebas unitarias"
         run: |
-          dotnet test DotnetBestPractices.Tests/DotnetBestPractices.Tests.csproj \
+          dotnet test ${{ env.TEST_PROJECT }} \
             --no-build \
             --configuration Release \
             --verbosity normal \
@@ -71,13 +81,12 @@ jobs:
         with:
           name: dotnet-test-results
           path: |
-            ${{ env.INGENIERIA-SOFTWARE }}/**/TestResults/
+            **/TestResults/
           retention-days: 14
-    
-      - name: "Seguridad — Verificar vulnerabilidades en dependencias"
-        working-directory: ${{ env.INGENIERIA-SOFTWARE }}
+
+      - name: "Seguridad - Verificar vulnerabilidades en dependencias"
         continue-on-error: true
         run: |
           echo "Verificando vulnerabilidades en paquetes NuGet..."
-          dotnet list DotnetBestPractices.Api/DotnetBestPractices.Api.csproj package --vulnerable --include-transitive 2>&1 || true
-          dotnet list DotnetBestPractices.Tests/DotnetBestPractices.Tests.csproj package --vulnerable --include-transitive 2>&1 || true
+          dotnet list ${{ env.BACKEND_PROJECT }} package --vulnerable --include-transitive 2>&1 || true
+          dotnet list ${{ env.TEST_PROJECT }} package --vulnerable --include-transitive 2>&1 || true
