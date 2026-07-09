@@ -52,12 +52,4 @@ jobs:
 
       - name: "Test - Ejecutar pruebas unitarias"
         working-directory: project-gym
-        run: npx vitest run --reporter=default --coverage
-
-      - name: "Subir reporte de cobertura"
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: angular-coverage-node${{ matrix.node-version }}
-          path: project-gym/coverage/
-          retention-days: 14
+        run: npm test -- --watch=false
