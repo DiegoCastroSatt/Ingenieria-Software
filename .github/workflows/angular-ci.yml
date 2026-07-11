@@ -4,12 +4,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "project-gym/**"
+      - "Frontend_Software/**"
       - ".github/workflows/angular-ci.yml"
   push:
     branches: [main]
     paths:
-      - "project-gym/**"
+      - "Frontend_Software/**"
       - ".github/workflows/angular-ci.yml"
 
 permissions:
@@ -35,21 +35,21 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-          cache-dependency-path: project-gym/package-lock.json
+          cache-dependency-path: Frontend_Software/package-lock.json
 
       - name: "Instalar dependencias (npm ci)"
-        working-directory: project-gym
+        working-directory: Frontend_Software
         run: npm ci
 
       - name: "Lint - Verificar calidad del codigo"
-        working-directory: project-gym
+        working-directory: Frontend_Software
         continue-on-error: true
         run: npx ng lint 2>/dev/null || echo "Linting no configurado - considera agregar ESLint al proyecto"
 
       - name: "Build - Compilar proyecto Angular"
-        working-directory: project-gym
+        working-directory: Frontend_Software
         run: npm run build -- --configuration production
 
       - name: "Test - Ejecutar pruebas unitarias"
-        working-directory: project-gym
+        working-directory: Frontend_Software
         run: npm test -- --watch=false

@@ -1,0 +1,185 @@
+<section id="entrenamiento" class="section-band">
+  <div class="section-heading">
+    <p class="eyebrow">Entrenamiento</p>
+    <h2>Rutinas y registro en un solo flujo</h2>
+    <p>Elige una rutina, revisa sus ejercicios, personalizala si corresponde y registra la sesion sin cambiar de seccion.</p>
+  </div>
+
+  <div class="training-workspace">
+    <article class="panel routine-browser">
+      <div class="section-heading compact">
+        <p class="eyebrow">Paso 1</p><h2>Elegir rutina</h2>
+        <p>Usa una rutina personal, copia una predefinida o empieza un entrenamiento libre.</p>
+      </div>
+      <div class="segmented-control" role="tablist" aria-label="Tipo de rutina">
+        <button type="button" [class.active]="trainingRoutineTab() === 'personal'" (click)="selectTrainingTab('personal')">Mis rutinas</button>
+        <button type="button" [class.active]="trainingRoutineTab() === 'predefinida'" (click)="selectTrainingTab('predefinida')">Predefinidas</button>
+        <button type="button" [class.active]="trainingRoutineTab() === 'libre'" (click)="selectTrainingTab('libre')">Libre</button>
+      </div>
+
+      @if (trainingRoutineTab() === 'personal') {
+        <div class="routine-actions-row"><button class="primary-action small" type="button" (click)="openCreateRoutineEditor()">Crear rutina</button></div>
+        @if (!currentUser()) {
+          <div class="empty-state">Inicia sesion para administrar tus rutinas.</div>
+        } @else if (userRoutines().length === 0) {
+          <div class="empty-state">Aun no tienes rutinas personales. Puedes crear una o copiar una predefinida.</div>
+        } @else {
+          <div class="routine-list compact-list">
+            @for (routine of userRoutines(); track routine.idRutina; let index = $index) {
+              <article class="routine-card selectable" [class.selected]="selectedTrainingRoutineId() === routine.idRutina">
+                <button class="routine-toggle" type="button" (click)="selectRoutineForTraining(routine.idRutina)">
+                  <span>{{ routine.nombre }}</span><small>{{ routine.objetivo }} - {{ routine.dificultad }}</small><b>Usar</b>
+                </button>
+                <div class="routine-card-actions">
+                  <button class="secondary-action small" type="button" (click)="toggleRoutine(index, routine.idRutina)">Ver detalle</button>
+                  @if (canDeleteRoutine(routine)) {
+                    <button class="secondary-action small" type="button" (click)="openEditRoutineEditor(routine)">Editar</button>
+                    <button class="trash-action" type="button" (click)="eliminarRutina(routine)" title="Eliminar rutina" aria-label="Eliminar rutina {{ routine.nombre }}">X</button>
+                  }
+                </div>
+                <div class="routine-detail" [class.open]="isRoutineOpen(index)">
+                  <p>{{ routine.descripcion }}</p>
+                  @if (getRoutineDetail(routine.idRutina); as detail) {
+                    <div class="exercise-stack">
+                      @for (exercise of detail.ejercicios; track exercise.idRutinaEjercicio) {
+                        <div class="exercise-line"><strong>{{ exercise.nombreEjercicio }}</strong><span>{{ exercise.dia }} - {{ exercise.series ?? '-' }} series - {{ exercise.repeticiones ?? '-' }} reps</span></div>
+                      }
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+
+      @if (trainingRoutineTab() === 'predefinida') {
+        @if (predefinedRoutines().length === 0) {
+          <div class="empty-state">No hay rutinas predefinidas cargadas.</div>
+        } @else {
+          <div class="routine-list compact-list">
+            @for (routine of predefinedRoutines(); track routine.idRutina; let index = $index) {
+              <article class="routine-card selectable" [class.selected]="selectedTrainingRoutineId() === routine.idRutina">
+                <button class="routine-toggle" type="button" (click)="selectRoutineForTraining(routine.idRutina)">
+                  <span>{{ routine.nombre }}</span><small>{{ routine.objetivo }} - {{ routine.dificultad }}</small><b>Usar</b>
+                </button>
+                <div class="routine-card-actions">
+                  <button class="secondary-action small" type="button" (click)="toggleRoutine(1000 + index, routine.idRutina)">Ver detalle</button>
+                  <button class="primary-action small" type="button" (click)="copyRoutineAndPrepare(routine.idRutina)">Copiar y personalizar</button>
+                </div>
+                <div class="routine-detail" [class.open]="isRoutineOpen(1000 + index)">
+                  <p>{{ routine.descripcion }}</p>
+                  @if (getRoutineDetail(routine.idRutina); as detail) {
+                    <div class="exercise-stack">
+                      @for (exercise of detail.ejercicios; track exercise.idRutinaEjercicio) {
+                        <div class="exercise-line"><strong>{{ exercise.nombreEjercicio }}</strong><span>{{ exercise.dia }} - {{ exercise.series ?? '-' }} series - {{ exercise.repeticiones ?? '-' }} reps</span></div>
+                      }
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+
+      @if (trainingRoutineTab() === 'libre') {
+        <div class="free-training-card">
+          <strong>Entrenamiento libre</strong>
+          <span>Registra ejercicios sin asociarlos a una rutina. Es util para sesiones espontaneas o ajustes de ultimo momento.</span>
+          <button class="primary-action small" type="button" (click)="selectRoutineForTraining(0)">Usar entrenamiento libre</button>
+        </div>
+      }
+    </article>
+
+    <aside class="panel training-side-panel">
+      <div class="section-heading compact"><p class="eyebrow">Paso 2</p><h2>Preparar sesion</h2><p>Confirma el plan antes de comenzar.</p></div>
+      @if (selectedTrainingRoutine(); as routine) {
+        <div class="selected-routine-summary"><span>Rutina seleccionada</span><strong>{{ routine.nombre }}</strong><small>{{ routine.objetivo }} - {{ routine.dificultad }}</small></div>
+        @if (selectedTrainingRoutineDetail(); as detail) {
+          <div class="exercise-stack preview-stack">
+            @for (exercise of detail.ejercicios; track exercise.idRutinaEjercicio) {
+              <div class="exercise-line"><strong>{{ exercise.nombreEjercicio }}</strong><span>{{ exercise.series ?? '-' }} series - {{ exercise.repeticiones ?? '-' }} reps</span></div>
+            }
+          </div>
+        }
+      } @else {
+        <div class="selected-routine-summary"><span>Rutina seleccionada</span><strong>Entrenamiento libre</strong><small>Sin rutina asociada</small></div>
+      }
+      @if (!currentSession()) {
+        <label>Notas iniciales<input type="text" [(ngModel)]="sessionForm.notas" placeholder="Objetivos, molestias, foco del dia..." /></label>
+        <button class="primary-action full" type="button" (click)="iniciarSesionEntrenamiento()">Comenzar entrenamiento</button>
+      } @else {
+        <div class="result-panel"><span>Sesion #{{ currentSession()!.idSesion }}</span><strong>{{ currentSession()!.estado }}</strong></div>
+      }
+    </aside>
+  </div>
+
+  @if (routineEditorOpen()) {
+    <article class="panel routine-editor-panel">
+      <div class="section-heading compact"><p class="eyebrow">Rutina personal</p><h2>{{ editingRoutineId() ? 'Editar rutina' : 'Crear rutina' }}</h2><p>Define ejercicios, volumen y notas para guardar una rutina reutilizable.</p></div>
+      <div class="form-grid two">
+        <label>Nombre<input type="text" [(ngModel)]="routineForm.nombre" /></label>
+        <label>Objetivo<input type="text" [(ngModel)]="routineForm.objetivo" /></label>
+        <label>Dificultad<select [(ngModel)]="routineForm.dificultad"><option value="principiante">Principiante</option><option value="intermedio">Intermedio</option><option value="avanzado">Avanzado</option></select></label>
+        <label>Descripcion<input type="text" [(ngModel)]="routineForm.descripcion" /></label>
+      </div>
+      <label class="inline-check"><input type="checkbox" [(ngModel)]="routineForm.esPublica" /><span>Rutina publica</span></label>
+      <div class="routine-editor-list">
+        @for (exerciseDraft of routineForm.ejercicios; track exerciseDraft.key) {
+          <div class="routine-editor-row">
+            <label>Ejercicio<select [(ngModel)]="exerciseDraft.idEjercicio">@for (exercise of exercises(); track exercise.idEjercicio) { <option [ngValue]="exercise.idEjercicio">{{ exercise.nombre }}</option> }</select></label>
+            <label>Dia<input type="text" [(ngModel)]="exerciseDraft.dia" /></label>
+            <label>Series<input type="number" min="0" [(ngModel)]="exerciseDraft.series" /></label>
+            <label>Reps<input type="number" min="0" [(ngModel)]="exerciseDraft.repeticiones" /></label>
+            <label>Descanso seg<input type="number" min="0" [(ngModel)]="exerciseDraft.descansoSegundos" /></label>
+            <button class="trash-action" type="button" (click)="removeRoutineExerciseDraft(exerciseDraft.key)" aria-label="Quitar ejercicio">X</button>
+          </div>
+        }
+      </div>
+      <div class="routine-editor-actions">
+        <button class="secondary-action small" type="button" (click)="addRoutineExerciseDraft()">Agregar ejercicio</button>
+        <button class="secondary-action small" type="button" (click)="closeRoutineEditor()">Cancelar</button>
+        <button class="primary-action small" type="button" (click)="saveRoutineForm()">Guardar rutina</button>
+      </div>
+    </article>
+  }
+
+  <article class="panel training-session-panel">
+    <div class="section-heading compact"><p class="eyebrow">Paso 3</p><h2>Registrar entrenamiento</h2><p>Agrega ejercicios realizados y cierra la sesion cuando termines.</p></div>
+    @if (!currentSession()) {
+      <div class="empty-state">Comienza una sesion para registrar ejercicios.</div>
+    } @else {
+      <label>Ejercicio<select [(ngModel)]="detailForm.idEjercicio">@for (exercise of exercises(); track exercise.idEjercicio) { <option [ngValue]="exercise.idEjercicio">{{ exercise.nombre }}</option> }</select></label>
+      <div class="form-grid two">
+        <label>Maquina<select [(ngModel)]="detailForm.idMaquina"><option [ngValue]="0">Sin maquina</option>@for (machine of machines(); track machine.idMaquina) { <option [ngValue]="machine.idMaquina">{{ machine.nombre }}</option> }</select></label>
+        <label>Reserva<select [(ngModel)]="detailForm.idReserva"><option [ngValue]="0">Sin reserva asociada</option>@for (reservation of reservasParaEntrenamiento(); track reservation.idReserva) { <option [ngValue]="reservation.idReserva">{{ reservation.nombreMaquina }} - {{ reservation.fechaReserva }} {{ reservation.horaInicio }}</option> }</select></label>
+      </div>
+      <div class="form-grid two">
+        <label>Series<input type="number" [(ngModel)]="detailForm.seriesRealizadas" /></label>
+        <label>Reps<input type="number" [(ngModel)]="detailForm.repeticionesRealizadas" /></label>
+        <label>Peso kg<input type="number" [(ngModel)]="detailForm.pesoUsadoKg" /></label>
+        <label>Duracion min<input type="number" [(ngModel)]="detailForm.duracionMinutos" /></label>
+      </div>
+      <div class="form-grid two">
+        <label>Esfuerzo percibido<select [(ngModel)]="detailForm.esfuerzoPercibido"><option [ngValue]="1">1 - Muy suave</option><option [ngValue]="2">2</option><option [ngValue]="3">3 - Suave</option><option [ngValue]="4">4</option><option [ngValue]="5">5 - Moderado</option><option [ngValue]="6">6</option><option [ngValue]="7">7 - Intenso</option><option [ngValue]="8">8</option><option [ngValue]="9">9 - Muy intenso</option><option [ngValue]="10">10 - Maximo</option></select></label>
+        <label>Notas del ejercicio<input type="text" [(ngModel)]="detailForm.notas" placeholder="Tecnica, molestias, variacion..." /></label>
+      </div>
+      <button class="secondary-action full" type="button" (click)="agregarDetalleSesion()" [disabled]="detailLoading()">{{ detailLoading() ? 'Agregando...' : 'Agregar ejercicio' }}</button>
+      @if (sessionDetails().length > 0) {
+        <div class="registered-exercises"><h3>Ejercicios registrados</h3>@for (detail of sessionDetails(); track detail.idDetalle) { <div class="exercise-line"><strong>{{ detail.nombreEjercicio }}</strong><span>{{ detail.seriesRealizadas ?? '-' }} series - {{ detail.repeticionesRealizadas ?? '-' }} reps - {{ detail.pesoUsadoKg ?? 0 }} kg</span></div> }</div>
+      }
+      <div class="session-close-options">
+        <h3>Cierre de sesion</h3>
+        <div class="form-grid two">
+          <label>Completado %<input type="number" min="0" max="100" [(ngModel)]="completeForm.porcentajeCompletado" /></label>
+          <label>Calorias estimadas<input type="number" min="0" [(ngModel)]="completeForm.caloriasEstimadas" /></label>
+          <label>Tiempo total min<input type="number" min="0" [(ngModel)]="completeForm.tiempoTotalMinutos" /></label>
+          <label>Observacion<input type="text" [(ngModel)]="completeForm.observacion" placeholder="Como termino la sesion" /></label>
+        </div>
+        <label>Notas finales<input type="text" [(ngModel)]="completeForm.notas" placeholder="Sensaciones, ajustes para la proxima..." /></label>
+      </div>
+      <button class="primary-action full" type="button" (click)="completarSesionActual()">Completar sesion</button>
+    }
+  </article>
+</section>

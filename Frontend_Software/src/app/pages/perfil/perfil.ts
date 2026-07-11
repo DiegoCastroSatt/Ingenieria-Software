@@ -3,8 +3,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { GymService } from '../../core/services/gym-data.service';
-import { ActualizarPerfilImcPayload, ActualizarInformacionPublicaPayload, HistorialImc, ImcRecommendationResponse, PerfilUsuario, RutinaResumen } from '../../core/models/auth.models';
+import { PerfilService } from '../../core/services/perfil.service';
+import { RutinasService } from '../../core/services/rutinas.service';
+import { ActualizarPerfilImcPayload, ActualizarInformacionPublicaPayload, HistorialImc, ImcRecommendationResponse, PerfilUsuario } from '../../core/models/perfil.models';
+import { RutinaResumen } from '../../core/models/rutina.models';
 import { formatApiError } from '../../core/utils/api-error';
 
 @Component({
@@ -18,7 +20,8 @@ export class Perfil {
   ngOnInit(): void {
     this.loadPerfil();
   }
-  private readonly gymService = inject(GymService);
+  private readonly perfilService = inject(PerfilService);
+  private readonly rutinasService = inject(RutinasService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
@@ -62,7 +65,7 @@ export class Perfil {
 
     if (this.selectedAvatarFile) {
       this.uploadingAvatar.set(true);
-      this.gymService.subirAvatar(user.id, this.selectedAvatarFile).subscribe({
+      this.perfilService.subirAvatar(user.id, this.selectedAvatarFile).subscribe({
         next: (response) => {
           this.selectedAvatarFile = null;
           this.guardarInformacionPublicaConAvatar(response.avatarUrl);
@@ -146,7 +149,7 @@ export class Perfil {
       nivelActividad: this.bmiForm.nivelActividad
     };
 
-    this.gymService.calcularImc(user.id, payload).subscribe({
+    this.perfilService.calcularImc(user.id, payload).subscribe({
       next: (response) => {
         this.patchFormsFromPerfil(response.perfil);
         this.bmiResult.set(response);
@@ -167,7 +170,7 @@ export class Perfil {
       return;
     }
 
-    this.gymService.copiarRutina(idRutina, { idUsuario: user.id, activarRutina: true }).subscribe({
+    this.rutinasService.copiar(idRutina, { idUsuario: user.id, activarRutina: true }).subscribe({
       next: (routine) => {
         this.apiMessage.set(`Rutina copiada: ${routine.nombre}.`);
       },
@@ -198,7 +201,7 @@ export class Perfil {
       twitter: this.publicInfoForm.twitter || null
     };
 
-    this.gymService.actualizarInformacionPublica(user.id, payload).subscribe({
+    this.perfilService.actualizarInformacionPublica(user.id, payload).subscribe({
       next: (perfil) => {
         this.uploadingAvatar.set(false);
         this.patchFormsFromPerfil(perfil);
@@ -225,7 +228,7 @@ export class Perfil {
 
     this.loadHistorialImc();
     this.restorePublicInfoCache(user.id);
-    this.gymService.getPerfil(user.id).subscribe({
+    this.perfilService.getPerfil(user.id).subscribe({
       next: (perfil) => {
         const cachedPerfil = this.getCachedPublicInfo(user.id);
         const perfilParaMostrar = cachedPerfil && this.hasPublicInfo(cachedPerfil) && !this.hasPublicInfo(perfil)
@@ -248,7 +251,7 @@ export class Perfil {
       return;
     }
 
-    this.gymService.getHistorialImc(user.id).subscribe({
+    this.perfilService.getHistorialImc(user.id).subscribe({
       next: (history) => {
         this.bmiHistory.set(history);
       },

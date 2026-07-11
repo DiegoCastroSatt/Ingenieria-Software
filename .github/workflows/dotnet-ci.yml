@@ -4,20 +4,12 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "*.cs"
-      - "*.csproj"
-      - "**/*.cs"
-      - "**/*.csproj"
-      - "*.sln"
+      - "Backend_Software/**"
       - ".github/workflows/dotnet-ci.yml"
   push:
     branches: [main]
     paths:
-      - "*.cs"
-      - "*.csproj"
-      - "**/*.cs"
-      - "**/*.csproj"
-      - "*.sln"
+      - "Backend_Software/**"
       - ".github/workflows/dotnet-ci.yml"
 
 permissions:
@@ -34,8 +26,8 @@ jobs:
     env:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
-      BACKEND_PROJECT: Softawer.csproj
-      TEST_PROJECT: Softawer.TestRunner/Softawer.TestRunner.csproj
+      BACKEND_PROJECT: Backend_Software/Softawer.csproj
+      TEST_PROJECT: Backend_Software/Softawer.TestRunner/Softawer.TestRunner.csproj
     steps:
       - name: "Checkout del codigo fuente"
         uses: actions/checkout@v4

@@ -5,6 +5,36 @@ Es muy común que los usuarios sigan su rutina, pero se encuentren con equipos o
 Por eso, estamos desarrollando Gym_App, una aplicación web que permite a los usuarios reservar máquinas, gestionar sus horarios y organizar sus rutinas de forma anticipada.
 Con esto, logramos optimizar el uso del gimnasio, mejorar la experiencia del cliente y fomentar una rutina más ordenada y eficiente.
 
+## Estructura del repositorio
+
+- `Backend_Software/`: API ASP.NET Core, solución .NET, pruebas y scripts SQL.
+- `Frontend_Software/`: aplicación Angular y su Dockerfile.
+- `.github/workflows/`: integración continua para ambos proyectos.
+- `diagramas/`: documentación visual compartida.
+
+## Ejecución local
+
+Backend:
+
+```powershell
+dotnet run --project Backend_Software/Softawer.csproj
+```
+
+Frontend:
+
+```powershell
+cd Frontend_Software
+npm ci
+npm start
+```
+
+Frontend con Docker:
+
+```powershell
+docker build -t gym-frontend Frontend_Software
+docker run --rm -p 4200:80 gym-frontend
+```
+
 ## Epics
 1. Seguimiento de progreso
 2. Reserva de maquinas

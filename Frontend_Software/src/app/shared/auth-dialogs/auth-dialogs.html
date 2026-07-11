@@ -1,0 +1,21 @@
+<div class="modal-overlay login-overlay" [class.show]="loginAbierto()" (click)="cerrarDesdeFondo($event, 'login')">
+  <section class="modal">
+    <button class="modal-close" type="button" (click)="cerrarLogin()">×</button><p class="eyebrow">Autenticacion</p><h2>Iniciar sesion</h2>
+    <label>Usuario o correo<input type="text" [(ngModel)]="loginForm.nombre" /></label>
+    <label>Contrasena<input type="password" [(ngModel)]="loginForm.password" /></label>
+    <button class="primary-action full" type="button" (click)="login()" [disabled]="loginCargando()">{{ loginCargando() ? 'Ingresando...' : 'Ingresar' }}</button>
+    <button class="secondary-action full" type="button" (click)="openRegister()">Crear cuenta</button>
+    @if (errorLogin()) { <p class="form-error">{{ errorLogin() }}</p> }
+  </section>
+</div>
+<div class="modal-overlay register-overlay" [class.show]="registroAbierto()" (click)="cerrarDesdeFondo($event, 'registro')">
+  <section class="modal">
+    <button class="modal-close" type="button" (click)="cerrarRegistro()">×</button><p class="eyebrow">Registro</p><h2>Crear cuenta</h2>
+    <label>Nombre completo<input type="text" [(ngModel)]="registerForm.nombre" /></label><label>RUT<input type="text" [(ngModel)]="registerForm.rut" /></label>
+    <label>Correo<input type="email" [(ngModel)]="registerForm.correo" /></label><label>Edad<input type="text" [(ngModel)]="registerForm.edad" /></label>
+    <label>Contrasena<input type="password" [(ngModel)]="registerForm.password" /></label>
+    <button class="primary-action full" type="button" (click)="registrar()" [disabled]="registroCargando()">{{ registroCargando() ? 'Creando...' : 'Crear cuenta' }}</button>
+    <button class="secondary-action full" type="button" (click)="openLogin()">Ya tengo cuenta</button>
+    @if (errorRegistro()) { <p class="form-error">{{ errorRegistro() }}</p> }
+  </section>
+</div>

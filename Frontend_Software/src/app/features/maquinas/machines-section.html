@@ -1,0 +1,50 @@
+<section id="maquinas" class="section-band">
+  <div class="section-heading">
+    <p class="eyebrow">Disponibilidad de maquinas</p>
+    <h2>Inventario operativo</h2>
+    <p>El usuario consulta maquinas disponibles; el frontend muestra ubicacion, estado y senales de mantenimiento.</p>
+  </div>
+
+  <div class="favorites-block">
+    <button class="favorites-toggle" type="button" (click)="alternarFavoritas()" [attr.aria-expanded]="favoritasAbiertas()" aria-controls="favorite-machines-panel">
+      <span><small class="eyebrow">Favoritas</small><strong>Mis maquinas favoritas</strong></span>
+      <b [class.open]="favoritasAbiertas()">▸</b>
+    </button>
+    @if (favoritasAbiertas()) {
+      <div id="favorite-machines-panel" class="favorites-panel">
+        @if (!usuario()) {
+          <div class="empty-state">Inicia sesion para guardar maquinas favoritas.</div>
+        } @else if (favoritas().length === 0) {
+          <div class="empty-state">Aun no tienes maquinas favoritas.</div>
+        } @else {
+          <div class="machine-grid favorite-machine-grid">
+            @for (maquina of favoritas(); track maquina.idMaquina) {
+              <app-machine-card [maquina]="maquina" [favorita]="true" (favoritoCambiado)="cambiarFavorita($event)" />
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="machine-filter-panel" aria-label="Filtros de maquinas">
+    <label>Buscar<input type="search" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" placeholder="Nombre, descripcion o musculo" /></label>
+    <label>Categoria<select [ngModel]="categoria()" (ngModelChange)="categoria.set($event)"><option value="">Todas</option>@for (item of categorias(); track item) { <option [value]="item">{{ item }}</option> }</select></label>
+    <label>Ubicacion<select [ngModel]="ubicacion()" (ngModelChange)="ubicacion.set($event)"><option value="">Todas</option>@for (item of ubicaciones(); track item) { <option [value]="item">{{ item }}</option> }</select></label>
+    <label>Zona<select [ngModel]="musculo()" (ngModelChange)="musculo.set($event)"><option value="">Todas</option>@for (item of gruposMusculares(); track item) { <option [value]="item">{{ item }}</option> }</select></label>
+    <label>Estado<select [ngModel]="estado()" (ngModelChange)="estado.set($event)"><option value="">Todos</option><option value="disponible">Disponible</option><option value="ocupada">Ocupada</option><option value="mantencion">Mantencion</option><option value="fuera_servicio">Fuera de servicio</option></select></label>
+    <button class="secondary-action small" type="button" (click)="limpiarFiltros()" [disabled]="!hayFiltros()">Limpiar</button>
+  </div>
+
+  <div class="machine-grid">
+    @if (maquinas().length === 0) {
+      <div class="empty-state">No hay maquinas cargadas o el backend no esta disponible.</div>
+    } @else if (maquinasFiltradas().length === 0) {
+      <div class="empty-state">No hay maquinas que coincidan con los filtros seleccionados.</div>
+    } @else {
+      @for (maquina of maquinasFiltradas(); track maquina.idMaquina) {
+        <app-machine-card [maquina]="maquina" [favorita]="esFavorita(maquina.idMaquina)" (favoritoCambiado)="cambiarFavorita($event)" />
+      }
+    }
+  </div>
+</section>

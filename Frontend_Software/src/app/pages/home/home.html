@@ -1,0 +1,97 @@
+<div class="app-shell">
+  <app-header [usuario]="currentUser()" (loginSolicitado)="authDialogs().openLogin()" (mensaje)="apiMessage.set($event)" />
+
+  <main id="inicio">
+    <section class="hero-panel">
+      <div class="hero-content">
+        <p class="eyebrow">Flujo operativo del gimnasio</p>
+        <h1>Controla rutinas, maquinas y progreso desde una sola vista.</h1>
+        <p class="hero-copy">
+          Interfaz basada en los flujos de autenticacion, disponibilidad, reservas y seguimiento.
+          La aplicacion consume los endpoints actuales del backend sin cambiar la API.
+        </p>
+        <div class="hero-actions">
+          @if (currentUser()) {
+            <button class="primary-action" type="button" (click)="scrollToRutinas()">Entrenar ahora</button>
+            <a class="secondary-action" href="#reservas">Crear reserva</a>
+          } @else {
+            <button class="primary-action" type="button" (click)="authDialogs().openLogin()">Iniciar sesion</button>
+            <button class="secondary-action" type="button" (click)="authDialogs().openRegister()">Crear cuenta</button>
+          }
+        </div>
+      </div>
+
+      <aside class="flow-summary" aria-label="Estado del sistema">
+        <div class="flow-node start">Inicio</div>
+        <div class="flow-line"></div>
+        
+        <div class="flow-line"></div>
+        <div class="flow-card">
+          <span>Sesion</span>
+          <strong>{{ currentUser()?.nombre || 'Usuario no autenticado' }}</strong>
+        </div>
+        @if (apiMessage()) {
+          <div class="flow-line"></div>
+          <div class="flow-card accent">
+            <span>Ultima accion</span>
+            <strong>{{ apiMessage() }}</strong>
+          </div>
+        }
+      </aside>
+    </section>
+
+    <section class="metric-grid" aria-label="Resumen general">
+      <article class="metric-card">
+        <span>Rutinas</span>
+        <strong>{{ predefinedRoutines().length }}</strong>
+        <small>predefinidas cargadas</small>
+      </article>
+      <article class="metric-card">
+        <span>Maquinas</span>
+        <strong>{{ machines().length }}</strong>
+        <small>en catalogo</small>
+      </article>
+      <article class="metric-card">
+        <span>Reservas</span>
+        <strong>{{ reservations().length }}</strong>
+        <small>del usuario actual</small>
+      </article>
+      <article class="metric-card">
+        <span>Sesiones</span>
+        <strong>{{ workoutHistory().length }}</strong>
+        <small>en historial</small>
+      </article>
+    </section>
+
+    <app-machines-section [maquinas]="machines()" [usuario]="currentUser()" (mensaje)="apiMessage.set($event)" />
+
+    <app-training-section
+      [currentUser]="currentUser()"
+      [machines]="machines()"
+      [exercises]="exercises()"
+      [reservations]="reservations()"
+      (message)="apiMessage.set($event)"
+      (predefinedRoutinesChange)="predefinedRoutines.set($event)"
+      (sessionCompleted)="historyRefresh.update(value => value + 1)"
+    />
+
+    <app-reservations-section
+      [maquinas]="machines()"
+      [usuario]="currentUser()"
+      (reservasCambiadas)="reservations.set($event)"
+      (mensaje)="apiMessage.set($event)"
+    />
+
+    <app-history-section
+      [usuario]="currentUser()"
+      [actualizar]="historyRefresh()"
+      (historialCambiado)="workoutHistory.set($event)"
+      (mensaje)="apiMessage.set($event)"
+    />
+  </main>
+  <footer class="footer">
+    <span>GymApp 2026</span>
+    <span>Interfaz basada en flujos de autenticacion, reservas y rutinas</span>
+  </footer>
+  <app-auth-dialogs (mensaje)="apiMessage.set($event)" />
+</div>

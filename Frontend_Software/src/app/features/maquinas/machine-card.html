@@ -1,0 +1,43 @@
+<article class="machine-card">
+  <button
+    class="favorite-action"
+    [class.active]="favorita()"
+    type="button"
+    (click)="favoritoCambiado.emit(maquina())"
+    [title]="favorita() ? 'Quitar de favoritas' : 'Agregar a favoritas'"
+    [attr.aria-label]="(favorita() ? 'Quitar ' : 'Agregar ') + maquina().nombre + (favorita() ? ' de favoritas' : ' a favoritas')"
+  >
+    {{ favorita() ? '★' : '☆' }}
+  </button>
+  @if (maquina().estado === 'mantencion') {
+    <p class="machine-unavailable">Temporalmente fuera de servicio</p>
+  }
+  @if (maquina().imagenUrl) {
+    <img class="machine-photo" [src]="maquina().imagenUrl" [alt]="maquina().nombre" loading="lazy" />
+  }
+  <div>
+    <div class="machine-title-row">
+      <span
+        class="status-dot"
+        [class.available]="maquina().estado === 'disponible'"
+        [class.warning]="maquina().estado === 'mantencion'"
+        [class.blocked]="maquina().estado === 'fuera_servicio' || maquina().estado === 'ocupada'"
+      ></span>
+      <details class="machine-info">
+        <summary aria-label="Ver informacion de {{ maquina().nombre }}">i</summary>
+        <div class="info-popover">
+          <strong>Musculos objetivo</strong>
+          <p>{{ maquina().musculosObjetivo || 'Sin informacion registrada.' }}</p>
+          <strong>Uso recomendado</strong>
+          <p>{{ maquina().descripcion }}</p>
+        </div>
+      </details>
+    </div>
+    <h3>{{ maquina().nombre }}</h3>
+    <p>{{ maquina().descripcion || 'Sin descripcion registrada.' }}</p>
+  </div>
+  <dl>
+    <div><dt>Ubicacion</dt><dd>{{ maquina().ubicacion || 'Sin ubicacion' }}</dd></div>
+    <div><dt>Estado</dt><dd>{{ maquina().estado }}</dd></div>
+  </dl>
+</article>

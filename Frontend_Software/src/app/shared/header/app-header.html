@@ -1,0 +1,30 @@
+<header class="topbar">
+  <a class="brand" href="#inicio" aria-label="Ir al inicio"><img class="brand-mark" src="logo.png" alt="" /><span>GymApp</span></a>
+  <nav class="desktop-nav" aria-label="Secciones principales">
+    <a href="#maquinas">Maquinas</a><a href="#entrenamiento">Entrenamiento</a><a href="#reservas">Reservas</a><a href="#historial">Historial</a>
+  </nav>
+  <div class="topbar-actions">
+    <div class="menu-wrapper">
+      <button class="menu-btn" type="button" [class.open]="menuAbierto()" (click)="alternarMenu()">Menu <span aria-hidden="true">▾</span></button>
+      <div class="dropdown" [class.show]="menuAbierto()">
+        <a href="#inicio">Inicio</a><a href="#maquinas">Disponibilidad</a><a href="#entrenamiento">Entrenamiento</a>
+        <button type="button" (click)="irAPerfil()">Perfil</button>
+        <a href="#reservas">Reservas</a><a href="#historial">Historial</a>
+        @if (usuario()) { <button type="button" class="danger" (click)="cerrarSesion()">Cerrar sesion</button> }
+      </div>
+    </div>
+    @if (usuario(); as user) {
+      <div class="user-menu-wrapper">
+        <button class="user-menu-button" type="button" [class.open]="menuUsuarioAbierto()" (click)="alternarMenuUsuario()">{{ user.nombre }} <span aria-hidden="true">▾</span></button>
+        <div class="user-dropdown" [class.show]="menuUsuarioAbierto()">
+          <button type="button" class="user-menu-item" (click)="irAPerfil()"><span>Perfil</span><small>Editar información personal</small></button>
+          <button type="button" class="user-menu-item" (click)="irAProgreso()"><span>Progreso</span><small>Ver historial de entrenamientos</small></button>
+          <hr class="menu-divider" />
+          <button type="button" class="user-menu-item danger" (click)="cerrarSesion()">Cerrar sesión</button>
+        </div>
+      </div>
+    } @else {
+      <button class="session-pill" type="button" (click)="loginSolicitado.emit()">Iniciar sesion</button>
+    }
+  </div>
+</header>

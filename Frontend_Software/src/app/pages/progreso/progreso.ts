@@ -2,9 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Metrica, SesionHistorial } from '../../core/models/auth.models';
+import { Metrica } from '../../core/models/metrica.models';
+import { SesionHistorial } from '../../core/models/sesion.models';
 import { AuthService } from '../../core/services/auth.service';
-import { GymService } from '../../core/services/gym-data.service';
+import { MetricasService } from '../../core/services/metricas.service';
+import { SesionesService } from '../../core/services/sesiones.service';
 
 type ProgressBar = {
   name: string;
@@ -47,7 +49,8 @@ type LiftMetricSummary = {
 })
 export class Progreso implements OnInit {
   private readonly authService = inject(AuthService);
-  private readonly gymService = inject(GymService);
+  private readonly metricasService = inject(MetricasService);
+  private readonly sesionesService = inject(SesionesService);
   private readonly router = inject(Router);
 
   protected readonly currentUser = this.authService.currentUser;
@@ -255,7 +258,7 @@ export class Progreso implements OnInit {
       return;
     }
 
-    this.gymService.crearMetrica({
+    this.metricasService.crear({
       idUsuario: user.id,
       ejercicio: exercise,
       pesoKg: Math.round(valueKg * 10) / 10,
@@ -291,7 +294,7 @@ export class Progreso implements OnInit {
       return;
     }
 
-    this.gymService.eliminarMetrica(metric.sourceId, user.id).subscribe({
+    this.metricasService.eliminar(metric.sourceId, user.id).subscribe({
       next: () => {
         this.liftMetrics.set(this.liftMetrics().filter((item) => item.id !== metricId));
       },
@@ -317,7 +320,7 @@ export class Progreso implements OnInit {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.gymService.getHistorial(idUsuario).subscribe({
+    this.sesionesService.getHistorial(idUsuario).subscribe({
       next: (history) => {
         this.history.set(this.uniqueHistoryBySession(history));
         this.loading.set(false);
@@ -343,7 +346,7 @@ export class Progreso implements OnInit {
   }
 
   private loadMetricHistory(idUsuario: number): void {
-    this.gymService.getMetricas(idUsuario).subscribe({
+    this.metricasService.getPorUsuario(idUsuario).subscribe({
       next: (metrics) => {
         this.liftMetrics.set(metrics.map((metric) => this.mapApiMetric(metric)));
       },

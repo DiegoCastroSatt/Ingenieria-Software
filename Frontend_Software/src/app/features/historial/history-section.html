@@ -1,0 +1,23 @@
+<section id="historial" class="section-band">
+  <div class="section-heading">
+    <p class="eyebrow">Historial y progreso</p>
+    <h2>Sesiones registradas</h2>
+    <p>Consulta las sesiones, rutina seguida, ejercicios realizados y resumen de progreso.</p>
+  </div>
+  <button class="secondary-action small" type="button" (click)="recargar()">Recargar historial</button>
+  <div class="history-list">
+    @if (historial().length === 0) {
+      <div class="empty-state">No hay sesiones registradas para mostrar.</div>
+    } @else {
+      @for (entry of historial(); track entry.sesion.idSesion) {
+        <article class="history-card">
+          <div><strong>Sesion #{{ entry.sesion.idSesion }}</strong><span>{{ entry.rutina?.nombre || 'Entrenamiento libre' }}</span></div>
+          <p>{{ entry.sesion.fechaInicio }} · {{ entry.sesion.estado }} · {{ entry.progreso?.tiempoTotalMinutos || '-' }} min</p>
+          @for (detail of entry.detalles; track detail.idDetalle) {
+            <small>{{ detail.nombreEjercicio }} · {{ detail.seriesRealizadas || '-' }} series · {{ detail.repeticionesRealizadas || '-' }} reps</small>
+          }
+        </article>
+      }
+    }
+  </div>
+</section>

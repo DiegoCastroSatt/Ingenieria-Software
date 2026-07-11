@@ -1,0 +1,43 @@
+<section id="reservas" class="section-band two-column">
+  <article class="panel">
+    <div class="section-heading compact">
+      <p class="eyebrow">Reservas</p><h2>Crear reserva</h2>
+      <p>Reserva una maquina disponible para una fecha y horario especifico.</p>
+    </div>
+    <label>Maquina
+      <select [(ngModel)]="formulario.idMaquina">
+        @for (maquina of maquinas(); track maquina.idMaquina) {
+          <option [ngValue]="maquina.idMaquina" [disabled]="estadoMaquina(maquina) !== 'disponible'" [textContent]="maquina.nombre + ' - ' + etiquetaEstado(maquina)"></option>
+        }
+      </select>
+    </label>
+    <div class="form-grid two">
+      <label>Fecha<input type="date" [(ngModel)]="formulario.fechaReserva" [min]="hoyIso" (ngModelChange)="cambiarFecha()" /></label>
+      <label>Inicio<input type="time" [(ngModel)]="formulario.horaInicio" /></label>
+      <label>Fin<input type="time" [(ngModel)]="formulario.horaFin" /></label>
+    </div>
+    <div class="reservation-status" [class.available]="maquinaSeleccionadaDisponible()" [class.blocked]="!maquinaSeleccionadaDisponible()">{{ mensajeEstado() }}</div>
+    <button class="primary-action full" type="button" (click)="crearReserva()" [disabled]="!maquinaSeleccionadaDisponible()" [textContent]="textoBoton()">Reservar maquina</button>
+  </article>
+
+  <article class="panel">
+    <div class="section-heading compact">
+      <p class="eyebrow">Agenda</p><h2>Mis reservas</h2>
+      <p>Reservas activas, canceladas o completadas del usuario actual.</p>
+    </div>
+    @if (reservas().length === 0) {
+      <div class="empty-state">No hay reservas registradas.</div>
+    } @else {
+      @for (reserva of reservas(); track reserva.idReserva) {
+        <div class="reservation-row">
+          <strong>{{ reserva.nombreMaquina }}</strong>
+          @if (puedeCancelar(reserva)) {
+            <button class="secondary-action small cancel-reservation-action" type="button" (click)="cancelarReserva(reserva)">Cancelar</button>
+          }
+          <span>{{ reserva.fechaReserva }} - {{ reserva.horaInicio }} - {{ reserva.horaFin }}</span>
+          <small>{{ reserva.estado }}</small>
+        </div>
+      }
+    }
+  </article>
+</section>
