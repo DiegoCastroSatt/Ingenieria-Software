@@ -20,6 +20,10 @@
     <Content Remove="Softawer.TestRunner\**\*" />
     <EmbeddedResource Remove="Softawer.TestRunner\**\*" />
     <None Remove="Softawer.TestRunner\**\*" />
+    <Compile Remove="Softawer.UnitTests\**\*.cs" />
+    <Content Remove="Softawer.UnitTests\**\*" />
+    <EmbeddedResource Remove="Softawer.UnitTests\**\*" />
+    <None Remove="Softawer.UnitTests\**\*" />
   </ItemGroup>
 
 </Project>

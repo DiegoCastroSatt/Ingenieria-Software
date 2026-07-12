@@ -27,7 +27,7 @@ jobs:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
       BACKEND_PROJECT: Backend_Software/Softawer.csproj
-      TEST_PROJECT: Backend_Software/Softawer.TestRunner/Softawer.TestRunner.csproj
+      TEST_PROJECT: Backend_Software/Softawer.UnitTests/Softawer.UnitTests.csproj
     steps:
       - name: "Checkout del codigo fuente"
         uses: actions/checkout@v4
@@ -65,7 +65,24 @@ jobs:
             --configuration Release \
             --verbosity normal \
             --logger "trx;LogFileName=test-results.trx" \
+            --results-directory Backend_Software/Softawer.UnitTests/TestResults \
             --collect:"XPlat Code Coverage"
+
+      - name: "Verificar que se descubrieron pruebas"
+        run: |
+          result_file=$(find Backend_Software/Softawer.UnitTests/TestResults -name test-results.trx -print -quit)
+          if [ -z "$result_file" ]; then
+            echo "No se encontro el resultado TRX de las pruebas."
+            exit 1
+          fi
+
+          total=$(grep -o 'total="[0-9]*"' "$result_file" | head -1 | cut -d'"' -f2)
+          if [ -z "$total" ] || [ "$total" -eq 0 ]; then
+            echo "El proyecto de pruebas no descubrio ninguna prueba."
+            exit 1
+          fi
+
+          echo "Pruebas descubiertas: $total"
 
       - name: "Subir resultados de tests y cobertura"
         if: always()
