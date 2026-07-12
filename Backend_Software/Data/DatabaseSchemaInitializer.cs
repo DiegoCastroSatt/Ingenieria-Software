@@ -86,6 +86,27 @@ public class DatabaseSchemaInitializer(MySqlDataSource dataSource)
         await command.ExecuteNonQueryAsync();
     }
 
+    public async Task EnsureReportesProblemasAsync()
+    {
+        await using var connection = await dataSource.OpenConnectionAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            CREATE TABLE IF NOT EXISTS reportes_problemas (
+                id_reporte INT AUTO_INCREMENT PRIMARY KEY,
+                id_usuario INT NOT NULL,
+                id_maquina INT NULL,
+                descripcion VARCHAR(500) NOT NULL,
+                fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                estado ENUM('pendiente', 'en_revision', 'resuelto', 'cerrado') NOT NULL DEFAULT 'pendiente',
+                fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_reportes_problemas_usuario_fecha (id_usuario, fecha_creacion),
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+                FOREIGN KEY (id_maquina) REFERENCES maquinas(id_maquina)
+            );
+            """;
+        await command.ExecuteNonQueryAsync();
+    }
+
     private static async Task<bool> PerfilUsuarioColumnExistsAsync(MySqlConnection connection, string columnName)
     {
         await using var command = connection.CreateCommand();

@@ -9,6 +9,7 @@ import { HealthService } from '../../core/services/health.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MachinesSection } from '../../features/maquinas/machines-section';
 import { ReservationsSection } from '../../features/reservas/reservations-section';
+import { ReportesSection } from '../../features/reportes/reportes-section';
 import { TrainingSection } from '../../features/entrenamiento/training-section';
 import { HistorySection } from '../../features/historial/history-section';
 import { AuthDialogs } from '../../shared/auth-dialogs/auth-dialogs';
@@ -17,7 +18,7 @@ import { AppHeader } from '../../shared/header/app-header';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [MachinesSection, ReservationsSection, TrainingSection, HistorySection, AuthDialogs, AppHeader],
+  imports: [MachinesSection, ReservationsSection, ReportesSection, TrainingSection, HistorySection, AuthDialogs, AppHeader],
   templateUrl: './home.html',
   styleUrl: './home.css',
   encapsulation: ViewEncapsulation.None

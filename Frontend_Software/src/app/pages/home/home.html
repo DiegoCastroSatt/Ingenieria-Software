@@ -82,6 +82,12 @@
       (mensaje)="apiMessage.set($event)"
     />
 
+    <app-reportes-section
+      [maquinas]="machines()"
+      [usuario]="currentUser()"
+      (mensaje)="apiMessage.set($event)"
+    />
+
     <app-history-section
       [usuario]="currentUser()"
       [actualizar]="historyRefresh()"

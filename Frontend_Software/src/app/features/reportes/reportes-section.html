@@ -1,0 +1,74 @@
+<section id="reportes" class="section-band two-column">
+  <article class="panel">
+    <div class="section-heading compact">
+      <p class="eyebrow">Soporte</p>
+      <h2>Reportar problema</h2>
+      <p>Informa una falla general o un problema asociado a una maquina.</p>
+    </div>
+
+    @if (!usuario()) {
+      <div class="empty-state">Inicia sesion para enviar un reporte.</div>
+    } @else {
+      <label>Maquina opcional
+        <select [(ngModel)]="formulario.idMaquina">
+          <option [ngValue]="null">Sin maquina especifica</option>
+          @for (maquina of maquinas(); track maquina.idMaquina) {
+            <option [ngValue]="maquina.idMaquina">{{ maquina.nombre }}</option>
+          }
+        </select>
+      </label>
+
+      <label>Descripcion
+        <textarea
+          rows="5"
+          maxlength="500"
+          placeholder="Describe el problema observado"
+          [(ngModel)]="formulario.descripcion"
+        ></textarea>
+      </label>
+      <small class="character-count">{{ formulario.descripcion.length }}/500 caracteres</small>
+
+      <button
+        class="primary-action full"
+        type="button"
+        [disabled]="enviando() || !formulario.descripcion.trim()"
+        (click)="crearReporte()"
+      >
+        {{ enviando() ? 'Enviando...' : 'Enviar reporte' }}
+      </button>
+
+      @if (error()) { <p class="form-error" role="alert">{{ error() }}</p> }
+      @if (exito()) { <p class="form-success" role="status">{{ exito() }}</p> }
+    }
+  </article>
+
+  <article class="panel">
+    <div class="section-heading compact">
+      <p class="eyebrow">Seguimiento</p>
+      <h2>Mis reportes</h2>
+      <p>Problemas que has informado al gimnasio.</p>
+    </div>
+
+    @if (!usuario()) {
+      <div class="empty-state">Inicia sesion para consultar tus reportes.</div>
+    } @else if (cargando()) {
+      <div class="empty-state">Cargando reportes...</div>
+    } @else if (reportes().length === 0) {
+      <div class="empty-state">No hay reportes registrados.</div>
+    } @else {
+      <div class="report-list">
+        @for (reporte of reportes(); track reporte.idReporte) {
+          <div class="report-row">
+            <div>
+              <strong>{{ reporte.nombreMaquina || 'Problema general' }}</strong>
+              <small>Reporte #{{ reporte.idReporte }}</small>
+            </div>
+            <span class="report-status">{{ reporte.estado }}</span>
+            <p>{{ reporte.descripcion }}</p>
+            <time [attr.datetime]="reporte.fechaCreacion">{{ reporte.fechaCreacion }}</time>
+          </div>
+        }
+      </div>
+    }
+  </article>
+</section>
