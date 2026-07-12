@@ -27,6 +27,10 @@ export class AppHeader {
 
   protected alternarMenu(): void { this.menuAbierto.update((abierto) => !abierto); }
   protected alternarMenuUsuario(): void { this.menuUsuarioAbierto.update((abierto) => !abierto); }
+  protected irAReportes(): void {
+    this.menuAbierto.set(false);
+    document.getElementById('reportes')?.scrollIntoView({ behavior: 'smooth' });
+  }
   protected irAPerfil(): void { this.menuUsuarioAbierto.set(false); void this.router.navigate(['/perfil']); }
   protected irAProgreso(): void { this.menuUsuarioAbierto.set(false); void this.router.navigate(['/progreso']); }
   protected cerrarSesion(): void {

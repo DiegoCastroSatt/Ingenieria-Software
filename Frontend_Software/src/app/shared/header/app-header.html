@@ -1,7 +1,7 @@
 <header class="topbar">
   <a class="brand" href="#inicio" aria-label="Ir al inicio"><img class="brand-mark" src="logo.png" alt="" /><span>GymApp</span></a>
   <nav class="desktop-nav" aria-label="Secciones principales">
-    <a href="#maquinas">Maquinas</a><a href="#entrenamiento">Entrenamiento</a><a href="#reservas">Reservas</a><a href="#historial">Historial</a>
+    <a href="#maquinas">Maquinas</a><a href="#entrenamiento">Entrenamiento</a><a href="#reservas">Reservas</a><a href="#reportes">Reportes</a><a href="#historial">Historial</a>
   </nav>
   <div class="topbar-actions">
     <div class="menu-wrapper">
@@ -9,10 +9,11 @@
       <div class="dropdown" [class.show]="menuAbierto()">
         <a href="#inicio">Inicio</a><a href="#maquinas">Disponibilidad</a><a href="#entrenamiento">Entrenamiento</a>
         <button type="button" (click)="irAPerfil()">Perfil</button>
-        <a href="#reservas">Reservas</a><a href="#historial">Historial</a>
+        <a href="#reservas">Reservas</a><button type="button" (click)="irAReportes()">Reportar problema</button><a href="#historial">Historial</a>
         @if (usuario()) { <button type="button" class="danger" (click)="cerrarSesion()">Cerrar sesion</button> }
       </div>
     </div>
+    <button class="session-pill" type="button" (click)="irAReportes()">Reportar problema</button>
     @if (usuario(); as user) {
       <div class="user-menu-wrapper">
         <button class="user-menu-button" type="button" [class.open]="menuUsuarioAbierto()" (click)="alternarMenuUsuario()">{{ user.nombre }} <span aria-hidden="true">▾</span></button>

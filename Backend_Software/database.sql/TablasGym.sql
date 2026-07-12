@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS mantenimientos;
 DROP TABLE IF EXISTS horarios;
 DROP TABLE IF EXISTS ejercicios;
 DROP TABLE IF EXISTS rutinas;
+DROP TABLE IF EXISTS reportes_problemas;
 DROP TABLE IF EXISTS usuarios;
 DROP TABLE IF EXISTS maquinas;
 DROP TABLE IF EXISTS tipos_maquina;
@@ -50,6 +51,18 @@ CREATE TABLE usuarios (
     rol ENUM('usuario', 'admin', 'entrenador') NOT NULL DEFAULT 'usuario',
     fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE reportes_problemas (
+    id_reporte INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_maquina INT NULL,
+    descripcion VARCHAR(500) NOT NULL,
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado ENUM('pendiente', 'en_revision', 'resuelto', 'cerrado') NOT NULL DEFAULT 'pendiente',
+    fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_maquina) REFERENCES maquinas(id_maquina)
 );
 
 CREATE TABLE perfil_usuario (

@@ -33,6 +33,7 @@ builder.Services.AddScoped<DatabaseSchemaInitializer>();
 builder.Services.AddScoped<CatalogoRepository>();
 builder.Services.AddScoped<RutinaRepository>();
 builder.Services.AddScoped<ReservaRepository>();
+builder.Services.AddScoped<ReporteProblemaRepository>();
 builder.Services.AddScoped<SesionEntrenamientoRepository>();
 builder.Services.AddScoped<MetricasRepository>();
 
@@ -84,6 +85,7 @@ using (var scope = app.Services.CreateScope())
         await schemaInitializer.EnsureUsuarioMaquinaFavoritaAsync();
         await schemaInitializer.EnsureReservaCancelacionesAsync();
         await schemaInitializer.EnsureMetricasAsync();
+        await schemaInitializer.EnsureReportesProblemasAsync();
     }
     catch (Exception exception)
     {
